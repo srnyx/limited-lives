@@ -1,0 +1,7 @@
+lives:
+  # The amount of lives a player starts with
+  default: 5
+  # The maximum amount of lives a player can have
+  max: 10
+  # The amount of lives that puts the player into spectator
+  min: 0

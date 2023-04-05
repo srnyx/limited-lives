@@ -1,0 +1,29 @@
+name: ${name}
+description: Each player has a limited number of lives. If you die, you go in spectator
+authors:
+  - srnyx
+website: https://srnyx.com
+
+main: xyz.srnyx.limitedlives.LimitedLives
+version: ${version}
+
+commands:
+  lifereload:
+    description: Reloads the plugin
+    aliases:
+      - llreload
+      - limitedlivesreload
+    permission: limitedlives.reload
+  setlives:
+    description: Sets the lives of a player
+    aliases:
+      - livesset
+      - llset
+      - limitedlivesset
+    permission: limitedlives.set
+
+permissions:
+  limitedlives.reload:
+    description: Allows the player to use /lifereload
+  limitedlives.set:
+    description: Allows the player to use /setlives
