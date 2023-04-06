@@ -7,7 +7,7 @@ Every player has a limited amount of lives. When a player loses all of their liv
 
 ## Download
 
-- **✅ Stable:** You can download the latest **stable** version at [Modrinth](https://modrinth.com/plugin/limited-lives), [Polymart](https://polymart.org/resource/####), [Spigot](https://spigotmc.org/resources/######), [BuiltByBit](https://builtbybit.com/resources/#####), or [Bukkit](https://dev.bukkit.org/projects/limited-lives)
+- **✅ Stable:** You can download the latest **stable** version at [Modrinth](https://modrinth.com/plugin/limitedlives), [Polymart](https://polymart.org/resource/3799), [Spigot](https://spigotmc.org/resources/109078), [BuiltByBit](https://builtbybit.com/resources/27837), or [Bukkit](https://dev.bukkit.org/projects/limited-lives)
 - **🚧 Snapshot:** You can download the latest **snapshot** version at [actions/workflows/build.yml](https://github.com/srnyx/limited-lives/actions/workflows/build.yml)
 
 # Wiki
