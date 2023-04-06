@@ -62,7 +62,7 @@ public class SetCommand implements AnnoyingCommand {
         }
 
         // Check if lives is in range
-        if (lives < plugin.livesMin || lives > plugin.livesMax) {
+        if (lives < plugin.config.livesMin || lives > plugin.config.livesMax) {
             new AnnoyingMessage(plugin, "error.invalid-argument")
                     .replace("%argument%", args[0])
                     .send(sender);

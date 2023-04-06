@@ -122,6 +122,10 @@ lives:
   zero: "%p%You've been put in spectator because you have no more lives left!"
   steal: "%p%You stole a life from %s%%target%%p%, you now have %s%%lives%%p%!" # %target%, %lives%
 
+get: # %lives%
+  self: "%prefix%You have %s%%lives%%p% lives@@%p%%command%@@%command%"
+  other: "%prefix%%s%%target%%p% has %s%%lives%%p% lives@@%p%%command%@@%command%" # %target%
+
 set: # %lives%
   self: "%prefix%Your lives have been set to %s%%lives%@@%p%%command%@@%command%"
   other: "%prefix%You set %s%%target%%p%'s lives to %s%%lives%@@%p%%command%@@%command%" # %target%

@@ -33,11 +33,11 @@ public class PlayerListener implements AnnoyingListener {
 
         // Remove life
         final UUID uuid = player.getUniqueId();
-        final int newLives = plugin.lives.getOrDefault(uuid, plugin.livesDefault) - 1;
-        if (newLives >= plugin.livesMin) plugin.lives.put(uuid, newLives);
+        final int newLives = plugin.lives.getOrDefault(uuid, plugin.config.livesDefault) - 1;
+        if (newLives >= plugin.config.livesMin) plugin.lives.put(uuid, newLives);
 
         // No more lives
-        if (newLives <= plugin.livesMin) {
+        if (newLives <= plugin.config.livesMin) {
             player.setGameMode(GameMode.SPECTATOR);
             new AnnoyingMessage(plugin, "lives.zero").send(player);
         } else {
@@ -58,8 +58,8 @@ public class PlayerListener implements AnnoyingListener {
         // Give life to killer
         if (killer == null) return;
         final UUID killerUuid = killer.getUniqueId();
-        final int newKillerLives = plugin.lives.getOrDefault(killerUuid, plugin.livesDefault) + 1;
-        if (newKillerLives > plugin.livesMax) return;
+        final int newKillerLives = plugin.lives.getOrDefault(killerUuid, plugin.config.livesDefault) + 1;
+        if (newKillerLives > plugin.config.livesMax) return;
         plugin.lives.put(killerUuid, newKillerLives);
         new AnnoyingMessage(plugin, "lives.steal")
                 .replace("%target%", player.getName())

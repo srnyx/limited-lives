@@ -8,6 +8,9 @@ main: xyz.srnyx.limitedlives.LimitedLives
 version: ${version}
 
 commands:
+  lives:
+    description: Gets the lives of a player
+    permission: limitedlives.lives
   lifereload:
     description: Reloads the plugin
     aliases:
@@ -23,6 +26,8 @@ commands:
     permission: limitedlives.set
 
 permissions:
+  limitedlives.lives:
+    description: Allows the player to use /lives
   limitedlives.reload:
     description: Allows the player to use /lifereload
   limitedlives.set:
