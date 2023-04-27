@@ -119,7 +119,7 @@ lives:
   lose:
     player: "%p%You lost a life to %s%%killer%%p%, you now have %s%%lives%%p%!" # %killer%, %lives%
     other: "%p%You lost a life, you now have %s%%lives%%p%!" # %lives%
-  zero: "%p%You've been put in spectator because you have no more lives left!"
+  zero: "%p%You lost all your lives!"
   steal: "%p%You stole a life from %s%%target%%p%, you now have %s%%lives%%p%!" # %target%, %lives%
 
 get: # %lives%

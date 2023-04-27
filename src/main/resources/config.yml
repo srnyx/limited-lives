@@ -5,3 +5,16 @@ lives:
   max: 10
   # The amount of lives that puts the player into spectator
   min: 0
+
+# The causes that will result in a player to losing a life, leave empty for all causes
+# Available causes: https://helpch.at/docs/[MC VERSION]/org/bukkit/event/entity/EntityDamageEvent.DamageCause.html
+death-causes: []
+
+# Whether to enable killers gaining a life when they kill a player
+stealing: true
+
+# The commands that will be executed when a player loses all their lives (executed by the console)
+# %player% - The player that lost all their lives
+# %killer% - The player that got the final kill on %player% (if applicable)
+punishment-commands:
+  - "gamemode spectator %player%"

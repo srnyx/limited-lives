@@ -44,7 +44,7 @@ public class LivesCommand implements AnnoyingCommand {
         // No arguments
         if (args.length == 0 && sender.checkPlayer()) {
             new AnnoyingMessage(plugin, "get.self")
-                    .replace("%lives%", plugin.lives.getOrDefault(sender.getPlayer().getUniqueId(), plugin.config.livesDefault))
+                    .replace("%lives%", plugin.getLives(sender.getPlayer().getUniqueId()))
                     .send(sender);
             return;
         }
@@ -61,7 +61,7 @@ public class LivesCommand implements AnnoyingCommand {
 
             new AnnoyingMessage(plugin, "get.other")
                     .replace("%target%", player.getName())
-                    .replace("%lives%", plugin.lives.getOrDefault(player.getUniqueId(), plugin.config.livesDefault))
+                    .replace("%lives%", plugin.getLives(player.getUniqueId()))
                     .send(sender);
             return;
         }
