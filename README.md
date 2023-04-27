@@ -1,6 +1,6 @@
 # Limited Lives
 
-Every player has a limited amount of lives. When a player loses all of their lives, they are put into spectator mode. The number of default, maximum, and minimum lives is all configurable. *Originally made for [Mickaboo](https://youtube.com/@Mickabo)*
+Every player has a limited amount of lives. When a player loses all of their lives, they are punished (according to the config). Almost everything is configurable. *Originally made for [Mickaboo](https://youtube.com/@Mickabo)*
 
 - **🐛 Bugs / 💡 Suggestions:** Please [open an issue](https://github.com/srnyx/limited-lives/issues/new/choose) to report a bug or suggest an idea
 - **🆘 Support:** Please [join the Discord](https://srnyx.xyz/discord) to get support
