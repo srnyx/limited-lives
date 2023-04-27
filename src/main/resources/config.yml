@@ -15,6 +15,10 @@ stealing: true
 
 # The commands that will be executed when a player loses all their lives (executed by the console)
 # %player% - The player that lost all their lives
-# %killer% - The player that got the final kill on %player% (if applicable)
+# %killer% - The player that got the final kill on %player%. If %player% died from a non-player cause, any commands that use %killer% will be ignored
 punishment-commands:
-  - "gamemode spectator %player%"
+  # Executed right when the player dies
+  death: []
+  # Executed when the player respawns
+  respawn:
+    - "gamemode spectator %player%"

@@ -10,11 +10,13 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import xyz.srnyx.annoyingapi.AnnoyingListener;
 import xyz.srnyx.annoyingapi.AnnoyingMessage;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -48,6 +50,7 @@ public class PlayerListener implements AnnoyingListener {
         if (newLives <= plugin.config.livesMin) {
             // No more lives
             deadPlayers.put(uuid, isPvp ? killer.getUniqueId() : null);
+            dispatchCommands(plugin.config.punishmentCommandsDeath, player, killer);
             new AnnoyingMessage(plugin, "lives.zero").send(player);
         } else if (isPvp) {
             // Lose to player
@@ -82,12 +85,17 @@ public class PlayerListener implements AnnoyingListener {
         final OfflinePlayer killer = killerUuid == null ? null : Bukkit.getOfflinePlayer(killerUuid);
         new BukkitRunnable() {
             public void run() {
-                plugin.config.punishmentCommands.forEach(command -> {
-                    command = command.replace("%player%", player.getName());
-                    if (killer != null) command = command.replace("%killer%", killer.getName());
-                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
-                });
+                dispatchCommands(plugin.config.punishmentCommandsRespawn, player, killer);
             }
         }.runTaskLater(plugin, 1);
+    }
+
+    private void dispatchCommands(@NotNull List<String> commands, @NotNull Player player, @Nullable OfflinePlayer killer) {
+        commands.forEach(command -> {
+            command = command.replace("%player%", player.getName());
+            if (killer == null && command.contains("%killer%")) return;
+            if (killer != null) command = command.replace("%killer%", killer.getName());
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+        });
     }
 }
