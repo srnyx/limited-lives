@@ -1,37 +1,42 @@
 name: ${name}
-description: Each player has a limited number of lives. If you die, you go in spectator
+description: ${description}
 authors:
   - srnyx
 website: https://srnyx.com
 
-main: xyz.srnyx.limitedlives.LimitedLives
+main: ${group}.limitedlives.LimitedLives
 version: ${version}
+api-version: 1.13
 
 softdepend:
   - PlaceholderAPI
 
 commands:
   lives:
-    description: Gets the lives of a player
-    permission: limitedlives.lives
+    description: Manage the lives of a player
   lifereload:
     description: Reloads the plugin
     aliases:
       - llreload
       - limitedlivesreload
     permission: limitedlives.reload
-  setlives:
-    description: Sets the lives of a player
-    aliases:
-      - livesset
-      - llset
-      - limitedlivesset
-    permission: limitedlives.set
 
 permissions:
-  limitedlives.lives:
-    description: Allows the player to use /lives
   limitedlives.reload:
     description: Allows the player to use /lifereload
-  limitedlives.set:
-    description: Allows the player to use /setlives
+  limitedlives.get.self:
+    description: Allows the player to use /lives get on themselves
+  limitedlives.get.other:
+    description: Allows the player to use /lives get on others
+  limitedlives.set.self:
+    description: Allows the player to use /lives set on themselves
+  limitedlives.set.other:
+    description: Allows the player to use /lives set on others
+  limitedlives.add.self:
+    description: Allows the player to use /lives add on themselves
+  limitedlives.add.other:
+    description: Allows the player to use /lives add on others
+  limitedlives.remove.self:
+    description: Allows the player to use /lives remove on themselves
+  limitedlives.remove.other:
+    description: Allows the player to use /lives remove on others

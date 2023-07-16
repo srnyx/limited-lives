@@ -2,22 +2,22 @@ package xyz.srnyx.limitedlives.commands;
 
 import org.jetbrains.annotations.NotNull;
 
-import xyz.srnyx.annoyingapi.AnnoyingMessage;
 import xyz.srnyx.annoyingapi.command.AnnoyingCommand;
 import xyz.srnyx.annoyingapi.command.AnnoyingSender;
+import xyz.srnyx.annoyingapi.message.AnnoyingMessage;
 
 import xyz.srnyx.limitedlives.LimitedLives;
 
 
-public class ReloadCommand implements AnnoyingCommand {
+public class ReloadCmd implements AnnoyingCommand {
     @NotNull private final LimitedLives plugin;
 
-    public ReloadCommand(@NotNull LimitedLives plugin) {
+    public ReloadCmd(@NotNull LimitedLives plugin) {
         this.plugin = plugin;
     }
 
     @Override @NotNull
-    public LimitedLives getPlugin() {
+    public LimitedLives getAnnoyingPlugin() {
         return plugin;
     }
 

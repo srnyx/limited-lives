@@ -1,36 +1,34 @@
-package xyz.srnyx.limitedlives;
+package xyz.srnyx.limitedlives.listeners;
 
 import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import xyz.srnyx.annoyingapi.AnnoyingListener;
-import xyz.srnyx.annoyingapi.AnnoyingMessage;
+import xyz.srnyx.annoyingapi.message.AnnoyingMessage;
+import xyz.srnyx.annoyingapi.utility.ItemDataUtility;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import xyz.srnyx.limitedlives.LimitedLives;
+
 import java.util.UUID;
 
 
 public class PlayerListener implements AnnoyingListener {
     @NotNull private final LimitedLives plugin;
-    @NotNull private final Map<UUID, UUID> deadPlayers = new HashMap<>();
 
     public PlayerListener(@NotNull LimitedLives plugin) {
         this.plugin = plugin;
     }
 
     @Override @NotNull
-    public LimitedLives getPlugin() {
+    public LimitedLives getAnnoyingPlugin() {
         return plugin;
     }
 
@@ -43,14 +41,9 @@ public class PlayerListener implements AnnoyingListener {
         final boolean isPvp = killer != null && killer != player;
 
         // Remove life
-        final UUID uuid = player.getUniqueId();
-        final int newLives = plugin.getLives(uuid) - 1;
-        if (newLives >= plugin.config.livesMin) plugin.lives.put(uuid, newLives);
-
-        if (newLives <= plugin.config.livesMin) {
+        final Integer newLives = plugin.removeLives(player, 1, killer);
+        if (newLives == null || newLives == plugin.config.livesMin) {
             // No more lives
-            deadPlayers.put(uuid, isPvp ? killer.getUniqueId() : null);
-            dispatchCommands(plugin.config.punishmentCommandsDeath, player, killer);
             new AnnoyingMessage(plugin, "lives.zero").send(player);
         } else if (isPvp) {
             // Lose to player
@@ -67,11 +60,8 @@ public class PlayerListener implements AnnoyingListener {
 
         // Give life to killer
         if (!plugin.config.stealing || !isPvp) return;
-        final UUID killerUuid = killer.getUniqueId();
-        final int newKillerLives = plugin.getLives(killerUuid) + 1;
-        if (newKillerLives > plugin.config.livesMax) return;
-        plugin.lives.put(killerUuid, newKillerLives);
-        new AnnoyingMessage(plugin, "lives.steal")
+        final Integer newKillerLives = plugin.addLives(killer, 1);
+        if (newKillerLives != null) new AnnoyingMessage(plugin, "lives.steal")
                 .replace("%target%", player.getName())
                 .replace("%lives%", newKillerLives)
                 .send(killer);
@@ -80,22 +70,29 @@ public class PlayerListener implements AnnoyingListener {
     @EventHandler
     public void onPlayerRespawn(@NotNull PlayerRespawnEvent event) {
         final Player player = event.getPlayer();
-        if (!deadPlayers.containsKey(player.getUniqueId())) return;
-        final UUID killerUuid = deadPlayers.remove(player.getUniqueId());
-        final OfflinePlayer killer = killerUuid == null ? null : Bukkit.getOfflinePlayer(killerUuid);
+        if (!plugin.deadPlayers.containsKey(player.getUniqueId())) return;
+        final UUID killerUuid = plugin.deadPlayers.remove(player.getUniqueId());
         new BukkitRunnable() {
             public void run() {
-                dispatchCommands(plugin.config.punishmentCommandsRespawn, player, killer);
+                LimitedLives.dispatchCommands(plugin.config.commandsPunishmentRespawn, player, killerUuid == null ? null : Bukkit.getOfflinePlayer(killerUuid));
             }
         }.runTaskLater(plugin, 1);
     }
 
-    private void dispatchCommands(@NotNull List<String> commands, @NotNull Player player, @Nullable OfflinePlayer killer) {
-        commands.forEach(command -> {
-            command = command.replace("%player%", player.getName());
-            if (killer == null && command.contains("%killer%")) return;
-            if (killer != null) command = command.replace("%killer%", killer.getName());
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
-        });
+    @EventHandler
+    public void onPlayerItemConsume(@NotNull PlayerItemConsumeEvent event) {
+        if (plugin.config.recipe == null || new ItemDataUtility(plugin, event.getItem()).get("ll_item") == null) return;
+        final Player player = event.getPlayer();
+        final Integer newLives = plugin.addLives(player, plugin.config.recipeAmount);
+        if (newLives == null) {
+            event.setCancelled(true);
+            new AnnoyingMessage(plugin, "eat.max")
+                    .replace("%max%", plugin.config.livesMax)
+                    .send(player);
+            return;
+        }
+        new AnnoyingMessage(plugin, "eat.success")
+                .replace("%lives%", newLives)
+                .send(player);
     }
 }

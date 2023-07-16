@@ -1,24 +1,57 @@
+DOCUMENTATION: https://annoying-api.srnyx.com/wiki/File-objects
+
+
 lives:
   # The amount of lives a player starts with
   default: 5
   # The maximum amount of lives a player can have
   max: 10
-  # The amount of lives that puts the player into spectator
+  # The amount of lives that triggers the punishment commands
   min: 0
 
 # The causes that will result in a player to losing a life, leave empty for all causes
-# Available causes: https://helpch.at/docs/[MC VERSION]/org/bukkit/event/entity/EntityDamageEvent.DamageCause.html
+# Available causes: https://helpch.at/docs/MC_VERSION/org/bukkit/event/entity/EntityDamageEvent.DamageCause.html
 death-causes: []
 
-# Whether to enable killers gaining a life when they kill a player
-stealing: true
+commands:
+  # The commands that will be executed when a player loses all their lives (executed by the console)
+  # %player% - The player that lost all their lives
+  # %killer% - The player that got the final kill on %player%. If %player% died from a non-player cause, any commands that use %killer% will be ignored
+  punishment:
+    # Executed right when the player dies
+    death: []
+    # Executed when the player respawns
+    respawn:
+      - "gamemode spectator %player%"
+  
+  # The commands that will be executed when a player goes from 0 lives to 1+ lives (executed by the console)
+  # %player% - The player that gained lives
+  revive:
+    - "gamemode survival %player%"
 
-# The commands that will be executed when a player loses all their lives (executed by the console)
-# %player% - The player that lost all their lives
-# %killer% - The player that got the final kill on %player%. If %player% died from a non-player cause, any commands that use %killer% will be ignored
-punishment-commands:
-  # Executed right when the player dies
-  death: []
-  # Executed when the player respawns
-  respawn:
-    - "gamemode spectator %player%"
+# Different ways of obtaining lives
+obtaining:
+  # Whether to enable killers gaining a life when they kill a player
+  stealing: true
+  crafting:
+    # Whether to enable crafting an item that can be CONSUMED to gain lives
+    enabled: true
+    # The amount of lives that will be gained when the item is consumed
+    amount: 1
+    recipe: # RECIPE
+      ingredients:
+        B: BEACON
+        R: REDSTONE
+      shape:
+        - " R "
+        - "RBR"
+        - " R "
+      result:
+        material: APPLE
+        name: "&c&lLife"
+        lore:
+          - "&7Eat to gain a life!"
+        enchantments:
+          DURABILITY: 1
+        flags:
+          - HIDE_ENCHANTS
