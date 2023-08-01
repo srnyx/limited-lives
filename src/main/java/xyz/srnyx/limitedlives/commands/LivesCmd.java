@@ -1,6 +1,6 @@
 package xyz.srnyx.limitedlives.commands;
 
-import org.bukkit.OfflinePlayer;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -43,7 +43,7 @@ public class LivesCmd implements AnnoyingCommand {
         // No arguments, get
         if (args.length == 0 || (args.length == 1 && sender.argEquals(0, "get"))) {
             if (sender.checkPlayer() && sender.checkPermission("limitedlives.get.self")) new AnnoyingMessage(plugin, "get.self")
-                    .replace("%lives%", plugin.getLives(sender.getPlayer().getUniqueId()))
+                    .replace("%lives%", plugin.getLives(sender.getPlayer()))
                     .send(sender);
             return;
         }
@@ -57,14 +57,14 @@ public class LivesCmd implements AnnoyingCommand {
         // get <player>
         if (sender.argEquals(0, "get")) {
             if (!sender.checkPermission("limitedlives.get.other")) return;
-            final OfflinePlayer player = BukkitUtility.getOfflinePlayer(args[1]);
+            final Player player = Bukkit.getPlayer(args[1]);
             if (player == null) {
                 sender.invalidArgument(args[1]);
                 return;
             }
             new AnnoyingMessage(plugin, "get.other")
                     .replace("%target%", player.getName())
-                    .replace("%lives%", plugin.getLives(player.getUniqueId()))
+                    .replace("%lives%", plugin.getLives(player))
                     .send(sender);
             return;
         }
@@ -105,7 +105,7 @@ public class LivesCmd implements AnnoyingCommand {
 
         // <action> <lives> <player>
         if (!sender.checkPermission("limitedlives." + action + ".other")) return;
-        final OfflinePlayer target = BukkitUtility.getOfflinePlayer(args[2]);
+        final Player target = Bukkit.getPlayer(args[2]);
         if (target == null) {
             sender.invalidArgument(args[2]);
             return;
@@ -156,9 +156,9 @@ public class LivesCmd implements AnnoyingCommand {
         ADD(LimitedLives::addLives),
         REMOVE((pluginAction, player, lives) -> pluginAction.removeLives(player, lives, null));
 
-        @NotNull private final TriFunction<LimitedLives, OfflinePlayer, Integer, Integer> consumer;
+        @NotNull private final TriFunction<LimitedLives, Player, Integer, Integer> consumer;
 
-        ModificationAction(@NotNull TriFunction<LimitedLives, OfflinePlayer, Integer, Integer> consumer) {
+        ModificationAction(@NotNull TriFunction<LimitedLives, Player, Integer, Integer> consumer) {
             this.consumer = consumer;
         }
 
@@ -168,7 +168,7 @@ public class LivesCmd implements AnnoyingCommand {
         }
 
         @Nullable
-        public Integer process(@NotNull LimitedLives plugin, @NotNull OfflinePlayer player, int lives) {
+        public Integer process(@NotNull LimitedLives plugin, @NotNull Player player, int lives) {
             return consumer.accept(plugin, player, lives);
         }
 

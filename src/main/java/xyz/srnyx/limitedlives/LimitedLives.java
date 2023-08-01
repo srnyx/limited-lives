@@ -10,47 +10,57 @@ import org.jetbrains.annotations.Nullable;
 
 import xyz.srnyx.annoyingapi.AnnoyingPlugin;
 import xyz.srnyx.annoyingapi.PluginPlatform;
+import xyz.srnyx.annoyingapi.data.EntityData;
 import xyz.srnyx.annoyingapi.file.AnnoyingData;
+import xyz.srnyx.annoyingapi.file.AnnoyingFile;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Level;
 
 
 public class LimitedLives extends AnnoyingPlugin {
+    @NotNull public static final String LIVES_KEY = "ll_lives";
+    @NotNull public static final String DEAD_KEY = "ll_dead";
+    @NotNull public static final String ITEM_KEY = "ll_item";
+
     @NotNull public LimitedConfig config = new LimitedConfig(this);
-    @NotNull public final AnnoyingData data = new AnnoyingData(this, "data.yml");
+    @Nullable public AnnoyingData oldData = new AnnoyingData(this, "data.yml", new AnnoyingFile.Options<>().canBeEmpty(false));
     /**
      * player, lives
      */
-    @NotNull public final Map<UUID, Integer> lives = new HashMap<>();
+    @Nullable public Map<UUID, Integer> oldLives = new HashMap<>();
     /**
      * player, killer
      */
-    @NotNull public final Map<UUID, UUID> deadPlayers = new HashMap<>();
+    @Nullable public Map<UUID, UUID> oldDeadPlayers = new HashMap<>();
 
     public LimitedLives() {
         options
-                .bStatsOptions(bStatsOptions -> bStatsOptions.id(18304))
                 .pluginOptions(pluginOptions -> pluginOptions.updatePlatforms(new PluginPlatform.Multi(
                         PluginPlatform.modrinth("limited-lives"),
                         PluginPlatform.hangar(this, "srnyx"),
                         PluginPlatform.spigot("109078"))))
-                .registrationOptions(registrationOptions -> registrationOptions
-                        .automaticRegistration(automaticRegistration -> automaticRegistration.packages(
-                                "xyz.srnyx.limitedlives.commands",
-                                "xyz.srnyx.limitedlives.listeners"))
-                        .papiExpansionToRegister(() -> new LimitedPlaceholders(this)));
+                .bStatsOptions(bStatsOptions -> bStatsOptions.id(18304))
+                .registrationOptions
+                .automaticRegistration(automaticRegistration -> automaticRegistration.packages(
+                        "xyz.srnyx.limitedlives.commands",
+                        "xyz.srnyx.limitedlives.listeners"))
+                .papiExpansionToRegister(() -> new LimitedPlaceholders(this));
 
-        // lives
-        final ConfigurationSection livesSection = data.getConfigurationSection("lives");
+        // oldLives
+        final ConfigurationSection livesSection = oldData.getConfigurationSection("lives");
         if (livesSection != null) for (final String key : livesSection.getKeys(false)) try {
-            lives.put(UUID.fromString(key), livesSection.getInt(key));
+            oldLives.put(UUID.fromString(key), livesSection.getInt(key));
         } catch (final IllegalArgumentException e) {
             log(Level.WARNING, "&cInvalid UUID in &4data.yml&c: &4" + key);
         }
+        if (oldLives.isEmpty()) oldLives = null;
 
-        // deadPlayers
-        final ConfigurationSection deadPlayersSection = data.getConfigurationSection("dead-players");
+        // oldDeadPlayers
+        final ConfigurationSection deadPlayersSection = oldData.getConfigurationSection("dead-players");
         if (deadPlayersSection != null) for (final String key : deadPlayersSection.getKeys(false)) {
             final UUID player;
             try {
@@ -67,8 +77,14 @@ public class LimitedLives extends AnnoyingPlugin {
                 log(Level.WARNING, "&cInvalid UUID in &4data.yml&c: &4" + killerString);
                 continue;
             }
-            deadPlayers.put(player, killer);
+            oldDeadPlayers.put(player, killer);
         }
+        if (oldDeadPlayers.isEmpty()) oldDeadPlayers = null;
+
+        // No old data loaded
+        if (oldLives != null || oldDeadPlayers != null) return;
+        oldData.delete();
+        oldData = null;
     }
 
     @Override
@@ -77,63 +93,56 @@ public class LimitedLives extends AnnoyingPlugin {
     }
 
     @Override
-    public void disable() {
-        data.set("lives", lives.entrySet().stream().collect(HashMap::new, (m, e) -> m.put(e.getKey().toString(), e.getValue()), HashMap::putAll));
-        data.setSave("dead-players", deadPlayers.entrySet().stream().collect(HashMap::new, (m, e) -> {
-            final UUID killer = e.getValue();
-            m.put(e.getKey().toString(), killer == null ? null : killer.toString());
-        }, HashMap::putAll));
-    }
-
-    @Override
     public void reload() {
         config = new LimitedConfig(this);
-        disable();
     }
 
-    public int getLives(@NotNull UUID uuid) {
-        return lives.getOrDefault(uuid, config.livesDefault);
+    public int getLives(@NotNull Player player) {
+        final String livesString = new EntityData(this, player).get(LIVES_KEY);
+        if (livesString != null) try {
+            return Integer.parseInt(livesString);
+        } catch (final NumberFormatException e) {
+            log(Level.WARNING, "&cInvalid lives for &4" + player.getName());
+        }
+        return config.livesDefault;
     }
 
     @Nullable
-    public Integer setLives(@NotNull OfflinePlayer player, int amount) {
+    public Integer setLives(@NotNull Player player, int amount) {
         if (amount > config.livesMax || amount < config.livesMin) return null;
-        final UUID uuid = player.getUniqueId();
-        final int oldLives = getLives(uuid);
-        lives.put(uuid, amount);
+        final int oldLives = getLives(player);
+        new EntityData(this, player).set(LIVES_KEY, amount);
         if (oldLives <= config.livesMin && amount > config.livesMin) revive(player);
         if (amount == config.livesMin) kill(player, null);
         return amount;
     }
 
     @Nullable
-    public Integer addLives(@NotNull OfflinePlayer player, int amount) {
-        final UUID uuid = player.getUniqueId();
-        final int oldLives = getLives(uuid);
+    public Integer addLives(@NotNull Player player, int amount) {
+        final int oldLives = getLives(player);
         final int newLives = oldLives + amount;
         if (newLives > config.livesMax) return null;
-        lives.put(uuid, newLives);
+        new EntityData(this, player).set(LIVES_KEY, newLives);
         if (oldLives <= config.livesMin && newLives > config.livesMin) revive(player);
         return newLives;
     }
 
     @Nullable
-    public Integer removeLives(@NotNull OfflinePlayer player, int amount, @Nullable Player killer) {
-        final UUID uuid = player.getUniqueId();
-        int newLives = getLives(uuid) - amount;
+    public Integer removeLives(@NotNull Player player, int amount, @Nullable Player killer) {
+        int newLives = getLives(player) - amount;
         if (newLives < config.livesMin) return null;
-        lives.put(uuid, newLives);
+        new EntityData(this, player).set(LIVES_KEY, newLives);
         if (newLives == config.livesMin) kill(player, killer);
         return newLives;
     }
 
-    private void revive(@NotNull OfflinePlayer player) {
-        deadPlayers.remove(player.getUniqueId());
+    private void revive(@NotNull Player player) {
+        new EntityData(this, player).remove(DEAD_KEY);
         dispatchCommands(config.commandsRevive, player, null);
     }
 
-    private void kill(@NotNull OfflinePlayer player, @Nullable Player killer) {
-        deadPlayers.put(player.getUniqueId(), killer != null && player != killer ? killer.getUniqueId() : null);
+    private void kill(@NotNull Player player, @Nullable Player killer) {
+        new EntityData(this, player).set(DEAD_KEY, killer != null ? killer.getUniqueId().toString() : null);
         dispatchCommands(config.commandsPunishmentDeath, player, killer);
     }
 

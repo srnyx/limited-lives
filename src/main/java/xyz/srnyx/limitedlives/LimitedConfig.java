@@ -8,8 +8,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import xyz.srnyx.annoyingapi.AnnoyingPlugin;
+import xyz.srnyx.annoyingapi.data.ItemData;
 import xyz.srnyx.annoyingapi.file.AnnoyingResource;
-import xyz.srnyx.annoyingapi.utility.ItemDataUtility;
 
 import java.util.Collections;
 import java.util.List;
@@ -72,6 +72,6 @@ public class LimitedConfig {
         final ConfigurationSection crafting = hasObtaining ? obtaining.getConfigurationSection("crafting") : null;
         final boolean hasCrafting = crafting != null;
         recipeAmount = hasCrafting ? crafting.getInt("amount", 1) : 1;
-        recipe = hasCrafting && crafting.getBoolean("enabled", true) ? config.getRecipe("obtaining.crafting.recipe", item -> new ItemDataUtility(plugin, item).set("ll_item", true).item, null, "life") : null;
+        recipe = hasCrafting && crafting.getBoolean("enabled", true) ? config.getRecipe("obtaining.crafting.recipe", item -> new ItemData(plugin, item).set(LimitedLives.ITEM_KEY, true).target, null, "life") : null;
     }
 }

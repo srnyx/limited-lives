@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  publish:
     uses: srnyx/tools/.github/workflows/publish.yml@main
     with:
       modrinth: LvTKDASD

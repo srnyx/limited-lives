@@ -6,14 +6,16 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import org.jetbrains.annotations.NotNull;
 
 import xyz.srnyx.annoyingapi.AnnoyingListener;
+import xyz.srnyx.annoyingapi.data.EntityData;
+import xyz.srnyx.annoyingapi.data.ItemData;
 import xyz.srnyx.annoyingapi.message.AnnoyingMessage;
-import xyz.srnyx.annoyingapi.utility.ItemDataUtility;
 
 import xyz.srnyx.limitedlives.LimitedLives;
 
@@ -70,18 +72,27 @@ public class PlayerListener implements AnnoyingListener {
     @EventHandler
     public void onPlayerRespawn(@NotNull PlayerRespawnEvent event) {
         final Player player = event.getPlayer();
-        if (!plugin.deadPlayers.containsKey(player.getUniqueId())) return;
-        final UUID killerUuid = plugin.deadPlayers.remove(player.getUniqueId());
+        final EntityData data = new EntityData(plugin, player);
+        final String killerString = data.get(LimitedLives.DEAD_KEY);
+        if (killerString == null) return;
+        data.remove(LimitedLives.DEAD_KEY);
+        UUID killerUuid = null;
+        try {
+            killerUuid = UUID.fromString(killerString);
+        } catch (final IllegalArgumentException ignored) {
+            // ignored
+        }
+        final UUID finalKillerUuid = killerUuid;
         new BukkitRunnable() {
             public void run() {
-                LimitedLives.dispatchCommands(plugin.config.commandsPunishmentRespawn, player, killerUuid == null ? null : Bukkit.getOfflinePlayer(killerUuid));
+                LimitedLives.dispatchCommands(plugin.config.commandsPunishmentRespawn, player, finalKillerUuid == null ? null : Bukkit.getOfflinePlayer(finalKillerUuid));
             }
         }.runTaskLater(plugin, 1);
     }
 
     @EventHandler
     public void onPlayerItemConsume(@NotNull PlayerItemConsumeEvent event) {
-        if (plugin.config.recipe == null || new ItemDataUtility(plugin, event.getItem()).get("ll_item") == null) return;
+        if (plugin.config.recipe == null || !new ItemData(plugin, event.getItem()).has(LimitedLives.ITEM_KEY)) return;
         final Player player = event.getPlayer();
         final Integer newLives = plugin.addLives(player, plugin.config.recipeAmount);
         if (newLives == null) {
@@ -94,5 +105,42 @@ public class PlayerListener implements AnnoyingListener {
         new AnnoyingMessage(plugin, "eat.success")
                 .replace("%lives%", newLives)
                 .send(player);
+    }
+
+    /**
+     * Called when a player joins a server
+     *
+     * @deprecated  Used to convert old data
+     */
+    @EventHandler @Deprecated
+    public void onPlayerJoin(@NotNull PlayerJoinEvent event) {
+        if (plugin.oldData == null) return;
+        final Player player = event.getPlayer();
+        final EntityData data = new EntityData(plugin, player);
+        final UUID uuid = player.getUniqueId();
+        boolean save = false;
+
+        // oldLives
+        if (plugin.oldLives != null) {
+            final Integer lives = plugin.oldLives.remove(uuid);
+            if (lives != null) {
+                data.set(LimitedLives.LIVES_KEY, lives);
+                plugin.oldData.set("lives." + uuid, null);
+                save = true;
+            }
+        }
+
+        // oldDeadPlayers
+        if (plugin.oldDeadPlayers != null) {
+            final UUID killer = plugin.oldDeadPlayers.remove(uuid);
+            if (killer != null) {
+                data.set(LimitedLives.DEAD_KEY, killer);
+                plugin.oldData.set("dead-players." + uuid, null);
+                save = true;
+            }
+        }
+
+        // Save old data removal(s)
+        if (save) plugin.oldData.save();
     }
 }

@@ -1,13 +1,12 @@
 package xyz.srnyx.limitedlives;
 
-import org.bukkit.OfflinePlayer;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import xyz.srnyx.annoyingapi.AnnoyingPAPIExpansion;
-import xyz.srnyx.annoyingapi.utility.BukkitUtility;
 
 
 public class LimitedPlaceholders extends AnnoyingPAPIExpansion {
@@ -30,13 +29,12 @@ public class LimitedPlaceholders extends AnnoyingPAPIExpansion {
     @Override @Nullable
     public String onPlaceholderRequest(@Nullable Player player, @NotNull String identifier) {
         // lives
-        if (player != null && identifier.equals("lives")) return String.valueOf(plugin.getLives(player.getUniqueId()));
+        if (player != null && identifier.equals("lives")) return String.valueOf(plugin.getLives(player));
 
-        // lives_<player>
+        // lives_PLAYER
         if (identifier.startsWith("lives_")) {
-            final OfflinePlayer target = BukkitUtility.getOfflinePlayer(identifier.substring(6));
-            if (target == null) return "N/A";
-            return String.valueOf(plugin.getLives(target.getUniqueId()));
+            final Player target = Bukkit.getPlayerExact(identifier.substring(6));
+            return target == null ? "N/A" : String.valueOf(plugin.getLives(target));
         }
 
         // default
