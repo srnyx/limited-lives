@@ -31,7 +31,7 @@ public class LimitedLives extends AnnoyingPlugin {
     /**
      * player, lives
      */
-    @Nullable public Map<UUID, Integer> oldLives = new HashMap<>();
+    @Nullable public Map<UUID, Integer> oldLivesData = new HashMap<>();
     /**
      * player, killer
      */
@@ -53,11 +53,11 @@ public class LimitedLives extends AnnoyingPlugin {
         // oldLives
         final ConfigurationSection livesSection = oldData.getConfigurationSection("lives");
         if (livesSection != null) for (final String key : livesSection.getKeys(false)) try {
-            oldLives.put(UUID.fromString(key), livesSection.getInt(key));
+            oldLivesData.put(UUID.fromString(key), livesSection.getInt(key));
         } catch (final IllegalArgumentException e) {
             log(Level.WARNING, "&cInvalid UUID in &4data.yml&c: &4" + key);
         }
-        if (oldLives.isEmpty()) oldLives = null;
+        if (oldLivesData.isEmpty()) oldLivesData = null;
 
         // oldDeadPlayers
         final ConfigurationSection deadPlayersSection = oldData.getConfigurationSection("dead-players");
@@ -82,7 +82,7 @@ public class LimitedLives extends AnnoyingPlugin {
         if (oldDeadPlayers.isEmpty()) oldDeadPlayers = null;
 
         // No old data loaded
-        if (oldLives != null || oldDeadPlayers != null) return;
+        if (oldLivesData != null || oldDeadPlayers != null) return;
         oldData.delete();
         oldData = null;
     }
@@ -142,7 +142,7 @@ public class LimitedLives extends AnnoyingPlugin {
     }
 
     private void kill(@NotNull Player player, @Nullable Player killer) {
-        new EntityData(this, player).set(DEAD_KEY, killer != null ? killer.getUniqueId().toString() : null);
+        new EntityData(this, player).set(DEAD_KEY, killer != null ? killer.getUniqueId().toString() : "null");
         dispatchCommands(config.commandsPunishmentDeath, player, killer);
     }
 

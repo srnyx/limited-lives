@@ -1,6 +1,7 @@
 package xyz.srnyx.limitedlives.listeners;
 
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -76,16 +77,16 @@ public class PlayerListener implements AnnoyingListener {
         final String killerString = data.get(LimitedLives.DEAD_KEY);
         if (killerString == null) return;
         data.remove(LimitedLives.DEAD_KEY);
-        UUID killerUuid = null;
-        try {
-            killerUuid = UUID.fromString(killerString);
+        OfflinePlayer killer = null;
+        if (!killerString.equals("null")) try {
+            killer = Bukkit.getOfflinePlayer(UUID.fromString(killerString));
         } catch (final IllegalArgumentException ignored) {
             // ignored
         }
-        final UUID finalKillerUuid = killerUuid;
+        final OfflinePlayer finalKiller = killer;
         new BukkitRunnable() {
             public void run() {
-                LimitedLives.dispatchCommands(plugin.config.commandsPunishmentRespawn, player, finalKillerUuid == null ? null : Bukkit.getOfflinePlayer(finalKillerUuid));
+                LimitedLives.dispatchCommands(plugin.config.commandsPunishmentRespawn, player, finalKiller);
             }
         }.runTaskLater(plugin, 1);
     }
@@ -121,8 +122,8 @@ public class PlayerListener implements AnnoyingListener {
         boolean save = false;
 
         // oldLives
-        if (plugin.oldLives != null) {
-            final Integer lives = plugin.oldLives.remove(uuid);
+        if (plugin.oldLivesData != null) {
+            final Integer lives = plugin.oldLivesData.remove(uuid);
             if (lives != null) {
                 data.set(LimitedLives.LIVES_KEY, lives);
                 plugin.oldData.set("lives." + uuid, null);
