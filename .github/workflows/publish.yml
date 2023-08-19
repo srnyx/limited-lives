@@ -12,3 +12,5 @@ jobs:
       modrinth: LvTKDASD
       curseforge: 846826
     secrets: inherit
+    permissions:
+      contents: write
