@@ -1,5 +1,10 @@
 package xyz.srnyx.limitedlives;
 
+import com.sk89q.worldguard.WorldGuard;
+import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
+import com.sk89q.worldguard.protection.flags.StateFlag;
+import com.sk89q.worldguard.protection.flags.registry.FlagConflictException;
+
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
@@ -14,6 +19,8 @@ import xyz.srnyx.annoyingapi.data.EntityData;
 import xyz.srnyx.annoyingapi.file.AnnoyingData;
 import xyz.srnyx.annoyingapi.file.AnnoyingFile;
 
+import xyz.srnyx.limitedlives.listeners.PlayerListener;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +34,9 @@ public class LimitedLives extends AnnoyingPlugin {
     @NotNull public static final String ITEM_KEY = "ll_item";
 
     @NotNull public LimitedConfig config = new LimitedConfig(this);
+    @Nullable public WorldGuardObjects worldGuard = null;
+
+    // OLD DATA
     @Nullable public AnnoyingData oldData = new AnnoyingData(this, "data.yml", new AnnoyingFile.Options<>().canBeEmpty(false));
     /**
      * player, lives
@@ -45,10 +55,21 @@ public class LimitedLives extends AnnoyingPlugin {
                         PluginPlatform.spigot("109078"))))
                 .bStatsOptions(bStatsOptions -> bStatsOptions.id(18304))
                 .registrationOptions
-                .automaticRegistration(automaticRegistration -> automaticRegistration.packages(
-                        "xyz.srnyx.limitedlives.commands",
-                        "xyz.srnyx.limitedlives.listeners"))
-                .papiExpansionToRegister(() -> new LimitedPlaceholders(this));
+                .listenersToRegister(new PlayerListener(this))
+                .papiExpansionToRegister(() -> new LimitedPlaceholders(this))
+                .automaticRegistration.packages("xyz.srnyx.limitedlives.commands");
+
+        // Register WorldGuard flag
+        try {
+            final WorldGuard instance = WorldGuard.getInstance();
+            final StateFlag flag = new StateFlag("limited-lives", true);
+            instance.getFlagRegistry().register(flag);
+            worldGuard = new WorldGuardObjects(WorldGuardPlugin.inst(), instance.getPlatform().getRegionContainer(), flag);
+        } catch (final FlagConflictException e) {
+            log(Level.WARNING, "&cFailed to register WorldGuard flag!");
+        } catch (final NoClassDefFoundError ignored) {
+            // Ignored
+        }
 
         // oldLives
         final ConfigurationSection livesSection = oldData.getConfigurationSection("lives");

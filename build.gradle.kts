@@ -10,7 +10,12 @@ plugins {
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
-setupAnnoyingAPI("4.1.0", "xyz.srnyx", "3.0.1", "Each player has a limited number of lives. If you die, you are punished")
+setupAnnoyingAPI("092bc8bd6e", "xyz.srnyx", "3.0.1", "Each player has a limited number of lives. If you die, you are punished")
 spigotAPI("1.8.8")
 repository(Repository.PLACEHOLDER_API)
-dependencies.compileOnly("me.clip", "placeholderapi", "2.11.3")
+repository("https://maven.enginehub.org/repo/")
+
+dependencies {
+    compileOnly("me.clip", "placeholderapi", "2.11.3")
+    compileOnly("com.sk89q.worldguard", "worldguard-bukkit", "7.0.0")
+}

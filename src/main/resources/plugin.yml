@@ -10,6 +10,7 @@ api-version: 1.13
 
 softdepend:
   - PlaceholderAPI
+  - WorldGuard
 
 commands:
   lives:

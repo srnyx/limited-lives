@@ -1,5 +1,10 @@
 package xyz.srnyx.limitedlives.listeners;
 
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
+import com.sk89q.worldguard.protection.flags.StateFlag;
+import com.sk89q.worldguard.protection.regions.RegionContainer;
+
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -37,9 +42,10 @@ public class PlayerListener implements AnnoyingListener {
 
     @EventHandler
     public void onPlayerDeath(@NotNull PlayerDeathEvent event) {
+        // Check death cause and WorldGuard regions
         final Player player = event.getEntity();
         final EntityDamageEvent damageEvent = player.getLastDamageCause();
-        if (damageEvent != null && !plugin.config.deathCauses.isEmpty() && !plugin.config.deathCauses.contains(damageEvent.getCause())) return;
+        if ((damageEvent != null && !plugin.config.deathCauses.isEmpty() && !plugin.config.deathCauses.contains(damageEvent.getCause())) || (plugin.worldGuard != null && !plugin.worldGuard.test(player))) return;
         final Player killer = player.getKiller();
         final boolean isPvp = killer != null && killer != player;
 
