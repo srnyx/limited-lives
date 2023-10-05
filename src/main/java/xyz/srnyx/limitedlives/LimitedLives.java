@@ -90,7 +90,7 @@ public class LimitedLives extends AnnoyingPlugin {
 
         // No old data loaded
         if (oldLivesData != null || oldDeadPlayers != null) return;
-        oldData.delete();
+        oldData.delete(true);
         oldData = null;
     }
 
