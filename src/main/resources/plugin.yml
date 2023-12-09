@@ -41,3 +41,9 @@ permissions:
     description: Allows the player to use /lives remove on themselves
   limitedlives.remove.other:
     description: Allows the player to use /lives remove on others
+  limitedlives.withdraw.self:
+    description: Allows the player to use /lives withdraw on themselves
+  limitedlives.withdraw.other:
+    description: Allows the player to use /lives withdraw on others
+  limitedlives.give:
+    description: Allows the player to use /lives give
