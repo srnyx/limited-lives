@@ -7,7 +7,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -106,36 +105,4 @@ public class PlayerListener extends AnnoyingListener {
                 .replace("%lives%", newLives)
                 .send(player);
     }
-
-    /**
-     * Called when a player joins a server
-     *
-     * @deprecated  Used to convert old data
-     */
-    @EventHandler @Deprecated
-    public void onPlayerJoin(@NotNull PlayerJoinEvent event) {
-        if (plugin.oldData == null) return;
-        final Player player = event.getPlayer();
-        final EntityData data = new EntityData(plugin, player);
-        final UUID uuid = player.getUniqueId();
-        boolean save = false;
-
-        // oldLives
-        if (plugin.oldLivesData != null) {
-            final Integer lives = plugin.oldLivesData.remove(uuid);
-            if (lives != null) {
-                data.set(LimitedLives.LIVES_KEY, lives);
-                plugin.oldData.set("lives." + uuid, null);
-                save = true;
-            }
-        }
-
-        // oldDeadPlayers
-        if (plugin.oldDeadPlayers != null) {
-            final UUID killer = plugin.oldDeadPlayers.remove(uuid);
-            if (killer != null) {
-                data.set(LimitedLives.DEAD_KEY, killer);
-                plugin.oldData.set("dead-players." + uuid, null);
-                save = true;
-            }
 }
