@@ -19,7 +19,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 
-public class LivesCmd implements AnnoyingCommand {
+public class LivesCmd extends AnnoyingCommand {
     @NotNull private final LimitedLives plugin;
 
     public LivesCmd(@NotNull LimitedLives plugin) {
@@ -134,17 +134,17 @@ public class LivesCmd implements AnnoyingCommand {
         if (length == 2) {
             // get
             if (sender.argEquals(0, "get")) {
-                if (cmdSender.hasPermission("limitedlives.get.self")) return Collections.singletonList(cmdSender.getName());
+                if (cmdSender.hasPermission("limitedlives.get.self")) return Collections.singleton(cmdSender.getName());
                 if (cmdSender.hasPermission("limitedlives.get.other")) return BukkitUtility.getOnlinePlayerNames();
             }
-            // set/add/remove
-            return Collections.singletonList("[<lives>]");
+            // <action>
+            return Collections.singleton("[<lives>]");
         }
 
-        // set/add/remove
+        // <action>
         if (length == 3) {
             final String actionLower = args[0].toLowerCase();
-            if (cmdSender.hasPermission("limitedlives." + actionLower + ".self")) return Collections.singletonList(cmdSender.getName());
+            if (cmdSender.hasPermission("limitedlives." + actionLower + ".self")) return Collections.singleton(cmdSender.getName());
             if (cmdSender.hasPermission("limitedlives." + actionLower + ".other")) return BukkitUtility.getOnlinePlayerNames();
         }
 

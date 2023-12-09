@@ -1,4 +1,4 @@
-package xyz.srnyx.limitedlives.listeners;
+package xyz.srnyx.limitedlives;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -18,12 +18,10 @@ import xyz.srnyx.annoyingapi.data.EntityData;
 import xyz.srnyx.annoyingapi.data.ItemData;
 import xyz.srnyx.annoyingapi.message.AnnoyingMessage;
 
-import xyz.srnyx.limitedlives.LimitedLives;
-
 import java.util.UUID;
 
 
-public class PlayerListener implements AnnoyingListener {
+public class PlayerListener extends AnnoyingListener {
     @NotNull private final LimitedLives plugin;
 
     public PlayerListener(@NotNull LimitedLives plugin) {
@@ -140,9 +138,4 @@ public class PlayerListener implements AnnoyingListener {
                 plugin.oldData.set("dead-players." + uuid, null);
                 save = true;
             }
-        }
-
-        // Save old data removal(s)
-        if (save) plugin.oldData.save();
-    }
 }

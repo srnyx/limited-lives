@@ -47,7 +47,7 @@ obtaining:
         - "RBR"
         - " R "
       result:
-        material: APPLE
+        material: APPLE # Must be a CONSUMABLE item
         name: "&c&lLife"
         lore:
           - "&7Eat to gain a life!"

@@ -14,8 +14,6 @@ import xyz.srnyx.annoyingapi.data.EntityData;
 import xyz.srnyx.annoyingapi.file.AnnoyingData;
 import xyz.srnyx.annoyingapi.file.AnnoyingFile;
 
-import xyz.srnyx.limitedlives.listeners.PlayerListener;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +48,7 @@ public class LimitedLives extends AnnoyingPlugin {
                         PluginPlatform.spigot("109078"))))
                 .bStatsOptions(bStatsOptions -> bStatsOptions.id(18304))
                 .registrationOptions
-                .listenersToRegister(new PlayerListener(this))
+                .toRegister(this, PlayerListener.class)
                 .papiExpansionToRegister(() -> new LimitedPlaceholders(this))
                 .automaticRegistration.packages("xyz.srnyx.limitedlives.commands");
 

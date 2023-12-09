@@ -9,7 +9,7 @@ import xyz.srnyx.annoyingapi.message.AnnoyingMessage;
 import xyz.srnyx.limitedlives.LimitedLives;
 
 
-public class ReloadCmd implements AnnoyingCommand {
+public class ReloadCmd extends AnnoyingCommand {
     @NotNull private final LimitedLives plugin;
 
     public ReloadCmd(@NotNull LimitedLives plugin) {
