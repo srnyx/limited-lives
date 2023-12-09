@@ -5,6 +5,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -139,6 +140,15 @@ public class LimitedLives extends AnnoyingPlugin {
         new EntityData(this, player).set(LIVES_KEY, newLives);
         if (newLives == config.livesMin) kill(player, killer);
         return newLives;
+    }
+
+    @Nullable
+    public Integer withdrawLives(@NotNull Player player, @NotNull Player target, int amount) {
+        if (config.recipe == null || getLives(player) <= amount) return null;
+        final ItemStack item = config.recipe.getResult();
+        item.setAmount(amount);
+        player.getInventory().addItem(item);
+        return removeLives(target, amount, null);
     }
 
     private void revive(@NotNull Player player) {

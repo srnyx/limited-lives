@@ -65,3 +65,12 @@ add: # %amount%, %lives%
 remove: # %amount%, %lives%
   self: "%prefix%Removed %s%%amount%%p% lives from yourself, you now have %s%%lives%@@%p%%command%@@%command%"
   other: "%prefix%Removed %s%%amount%%p% lives from %s%%target%%p%, they now have %s%%lives%@@%p%%command%@@%command%" # %target%
+
+give:
+  last-life: "%prefix%You can't give your last life away!@@%p%%command%@@%command%"
+  player: "%prefix%Gave %s%%amount%%p% lives to %s%%target%%p%, you now have %s%%playerlives%%p% lives and they have %s%%targetlives%%p% lives@@%p%%command%@@%command%" # %player%, %target%, %playerlives%, %targetlives%, %amount%
+  target: "%prefix%You were given %s%%amount%%p% lives by %s%%player%%p%, you now have %s%%targetlives%%p% lives and they have %s%%playerlives%%p% lives@@%p%%command%@@%command%" # %player%, %target%, %playerlives%, %targetlives%, %amount%
+
+withdraw:
+  self: "%prefix%Withdrew %s%%amount%%p% lives@@%p%%command%@@%command%" # %amount%
+  other: "%prefix%Withdrew %s%%amount%%p% lives from %s%%target%%p%@@%p%%command%@@%command%" # %target%, %amount%
