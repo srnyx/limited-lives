@@ -13,6 +13,7 @@ import xyz.srnyx.annoyingapi.message.AnnoyingMessage;
 import xyz.srnyx.annoyingapi.utility.BukkitUtility;
 
 import xyz.srnyx.limitedlives.LimitedLives;
+import xyz.srnyx.limitedlives.PlayerManager;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -45,7 +46,7 @@ public class LivesCmd extends AnnoyingCommand {
         // No arguments, get
         if (args.length == 0 || (args.length == 1 && sender.argEquals(0, "get"))) {
             if (sender.checkPlayer() && sender.checkPermission("limitedlives.get.self")) new AnnoyingMessage(plugin, "get.self")
-                    .replace("%lives%", plugin.getLives(sender.getPlayer()))
+                    .replace("%lives%", new PlayerManager(plugin, sender.getPlayer()).getLives())
                     .send(sender);
             return;
         }
@@ -66,7 +67,7 @@ public class LivesCmd extends AnnoyingCommand {
             }
             new AnnoyingMessage(plugin, "get.other")
                     .replace("%target%", player.getName())
-                    .replace("%lives%", plugin.getLives(player))
+                    .replace("%lives%", new PlayerManager(plugin, player).getLives())
                     .send(sender);
             return;
         }
@@ -98,24 +99,26 @@ public class LivesCmd extends AnnoyingCommand {
                 return;
             }
             final Player player = sender.getPlayer();
+            final PlayerManager playerManager = new PlayerManager(plugin, player);
+            final PlayerManager targetManager = new PlayerManager(plugin, target);
 
             // CHECKS
-            final int playerLives = plugin.getLives(player);
-            final int targetLives = plugin.getLives(target);
-            if (playerLives == 1) { // Player has 1 life left, if so, don't allow giving lives
+            final int playerLives = playerManager.getLives();
+            final int targetLives = targetManager.getLives();
+            if (playerLives == 1) { // Player has 1 life left, don't allow giving lives
                 new AnnoyingMessage(plugin, "give.last-life").send(sender);
                 return;
             }
-            if (playerLives <= lives) lives = playerLives - 1; // Player has enough lives, if not, give as many as possible
-            if (targetLives + lives > plugin.config.livesMax) lives = plugin.config.livesMax - targetLives; // Target can receive that many lives, if not, give as many as possible
+            if (playerLives <= lives) lives = playerLives - 1; // Player doesn't have enough lives, give as many as possible
+            if (targetLives + lives > targetManager.getMaxLives()) lives = plugin.config.livesMax - targetLives; // Target can't receive that many lives, give as many as possible
             if (lives <= 0) { // Lives is 0 or less (shouldn't happen)
                 new AnnoyingMessage(plugin, "give.last-life").send(sender);
                 return;
             }
 
             // Take lives from player and give to target
-            final Integer newPlayerLives = plugin.removeLives(player, lives, null);
-            final Integer newTargetLives = plugin.addLives(target, lives);
+            final Integer newPlayerLives = playerManager.removeLives(lives, null);
+            final Integer newTargetLives = targetManager.addLives(lives);
             if (newPlayerLives == null || newTargetLives == null) {
                 sender.invalidArgument(args[1]);
                 return;
@@ -154,7 +157,7 @@ public class LivesCmd extends AnnoyingCommand {
         // <action> <lives>
         if (args.length == 2) {
             if (!sender.checkPlayer() || !sender.checkPermission("limitedlives." + action + ".self")) return;
-            final Integer newLives = action.process(new ModificationData(plugin, sender, lives));
+            final Integer newLives = action.process(new ModificationData(plugin, sender.getPlayer(), lives));
             if (newLives == null) {
                 sender.invalidArgument(args[1]);
                 return;
@@ -173,7 +176,7 @@ public class LivesCmd extends AnnoyingCommand {
             sender.invalidArgument(args[2]);
             return;
         }
-        final Integer newLives = action.process(new ModificationData(plugin, sender, target, lives));
+        final Integer newLives = action.process(new ModificationData(plugin, sender.getPlayer(), target, lives));
         if (newLives == null) {
             sender.invalidArgument(args[1]);
             return;
@@ -217,32 +220,30 @@ public class LivesCmd extends AnnoyingCommand {
     }
 
     private static class ModificationData {
-        @NotNull private final LimitedLives plugin;
-        @NotNull private final AnnoyingSender sender;
-        @NotNull private final Player target;
+        @NotNull private final PlayerManager manager;
+        @NotNull private final Player sender;
         private int lives;
 
-        public ModificationData(@NotNull LimitedLives plugin, @NotNull AnnoyingSender sender, @NotNull Player target, int lives) {
-            this.plugin = plugin;
+        public ModificationData(@NotNull LimitedLives plugin, @NotNull Player sender, @NotNull Player target, int lives) {
+            manager = new PlayerManager(plugin, target);
             this.sender = sender;
-            this.target = target;
             this.lives = lives;
         }
 
-        public ModificationData(@NotNull LimitedLives plugin, @NotNull AnnoyingSender target, int lives) {
-            this(plugin, target, target.getPlayer(), lives);
+        public ModificationData(@NotNull LimitedLives plugin, @NotNull Player target, int lives) {
+            this(plugin, target, target, lives);
         }
     }
 
     private enum ModificationAction {
-        SET(data -> data.plugin.setLives(data.target, data.lives)),
-        ADD(data -> data.plugin.addLives(data.target, data.lives)),
-        REMOVE(data -> data.plugin.removeLives(data.target, data.lives, null)),
+        SET(data -> data.manager.setLives(data.lives)),
+        ADD(data -> data.manager.addLives(data.lives)),
+        REMOVE(data -> data.manager.removeLives(data.lives, null)),
         WITHDRAW(true, data -> {
-            final int targetLives = data.plugin.getLives(data.target);
+            final int targetLives = data.manager.getLives();
             if (targetLives == 1) return null; // Target has 1 life left, if so, don't allow withdrawing lives
             if (targetLives <= data.lives) data.lives = targetLives - 1; // Target has enough lives, if not, take as many as possible
-            return data.plugin.withdrawLives(data.sender.getPlayer(), data.target, data.lives);
+            return data.manager.withdrawLives(data.sender, data.lives);
         });
 
         private final boolean playerOnly;

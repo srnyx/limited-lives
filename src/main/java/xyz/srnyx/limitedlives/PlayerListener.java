@@ -42,7 +42,7 @@ public class PlayerListener extends AnnoyingListener {
         final boolean isPvp = killer != null && killer != player;
 
         // Remove life
-        final Integer newLives = plugin.removeLives(player, 1, killer);
+        final Integer newLives = new PlayerManager(plugin, player).removeLives(1, killer);
         if (newLives == null || newLives == plugin.config.livesMin) {
             // No more lives
             new AnnoyingMessage(plugin, "lives.zero").send(player);
@@ -61,7 +61,7 @@ public class PlayerListener extends AnnoyingListener {
 
         // Give life to killer
         if (!plugin.config.stealing || !isPvp) return;
-        final Integer newKillerLives = plugin.addLives(killer, 1);
+        final Integer newKillerLives = new PlayerManager(plugin, killer).addLives(1);
         if (newKillerLives != null) new AnnoyingMessage(plugin, "lives.steal")
                 .replace("%target%", player.getName())
                 .replace("%lives%", newKillerLives)
@@ -72,9 +72,9 @@ public class PlayerListener extends AnnoyingListener {
     public void onPlayerRespawn(@NotNull PlayerRespawnEvent event) {
         final Player player = event.getPlayer();
         final EntityData data = new EntityData(plugin, player);
-        final String killerString = data.get(LimitedLives.DEAD_KEY);
+        final String killerString = data.get(PlayerManager.DEAD_KEY);
         if (killerString == null) return;
-        data.remove(LimitedLives.DEAD_KEY);
+        data.remove(PlayerManager.DEAD_KEY);
         OfflinePlayer killer = null;
         if (!killerString.equals("null")) try {
             killer = Bukkit.getOfflinePlayer(UUID.fromString(killerString));
@@ -84,16 +84,16 @@ public class PlayerListener extends AnnoyingListener {
         final OfflinePlayer finalKiller = killer;
         new BukkitRunnable() {
             public void run() {
-                LimitedLives.dispatchCommands(plugin.config.commandsPunishmentRespawn, player, finalKiller);
+                PlayerManager.dispatchCommands(plugin.config.commandsPunishmentRespawn, player, finalKiller);
             }
         }.runTaskLater(plugin, 1);
     }
 
     @EventHandler
     public void onPlayerItemConsume(@NotNull PlayerItemConsumeEvent event) {
-        if (plugin.config.recipe == null || !new ItemData(plugin, event.getItem()).has(LimitedLives.ITEM_KEY)) return;
+        if (plugin.config.recipe == null || !new ItemData(plugin, event.getItem()).has(PlayerManager.ITEM_KEY)) return;
         final Player player = event.getPlayer();
-        final Integer newLives = plugin.addLives(player, plugin.config.recipeAmount);
+        final Integer newLives = new PlayerManager(plugin, player).addLives(plugin.config.recipeAmount);
         if (newLives == null) {
             event.setCancelled(true);
             new AnnoyingMessage(plugin, "eat.max")

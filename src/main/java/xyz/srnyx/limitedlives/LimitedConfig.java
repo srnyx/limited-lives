@@ -72,6 +72,6 @@ public class LimitedConfig {
         final ConfigurationSection crafting = hasObtaining ? obtaining.getConfigurationSection("crafting") : null;
         final boolean hasCrafting = crafting != null;
         recipeAmount = hasCrafting ? crafting.getInt("amount", 1) : 1;
-        recipe = hasCrafting && crafting.getBoolean("enabled", true) ? config.getRecipe("obtaining.crafting.recipe", item -> new ItemData(plugin, item).set(LimitedLives.ITEM_KEY, true).target, null, "life") : null;
+        recipe = hasCrafting && crafting.getBoolean("enabled", true) ? config.getRecipe("obtaining.crafting.recipe", item -> new ItemData(plugin, item).set(PlayerManager.ITEM_KEY, true).target, null, "life") : null;
     }
 }

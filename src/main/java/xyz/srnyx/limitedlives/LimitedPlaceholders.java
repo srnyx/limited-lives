@@ -29,19 +29,19 @@ public class LimitedPlaceholders extends AnnoyingPAPIExpansion {
     @Override @Nullable
     public String onPlaceholderRequest(@Nullable Player player, @NotNull String identifier) {
         // lives
-        if (player != null && identifier.equals("lives")) return String.valueOf(plugin.getLives(player));
+        if (player != null && identifier.equals("lives")) return String.valueOf(new PlayerManager(plugin, player).getLives());
 
         // lives_PLAYER
         if (identifier.startsWith("lives_")) {
             final Player target = Bukkit.getPlayerExact(identifier.substring(6));
-            return target == null ? "N/A" : String.valueOf(plugin.getLives(target));
+            return target == null ? "N/A" : String.valueOf(new PlayerManager(plugin, target).getLives());
         }
 
         // default
         if (identifier.equals("default")) return String.valueOf(plugin.config.livesDefault);
 
         // max
-        if (identifier.equals("max")) return String.valueOf(plugin.config.livesMax);
+        if (identifier.equals("max")) return String.valueOf(player == null ? plugin.config.livesMax : new PlayerManager(plugin, player).getMaxLives());
 
         // min
         if (identifier.equals("min")) return String.valueOf(plugin.config.livesMin);
