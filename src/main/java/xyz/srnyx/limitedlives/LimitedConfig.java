@@ -24,15 +24,23 @@ public class LimitedConfig {
     public final int livesMax;
     public final int livesMin;
     @NotNull public final Set<EntityDamageEvent.DamageCause> deathCauses;
-    public final boolean stealing;
-    @Nullable public final Recipe recipe;
-    public final int recipeAmount;
+    public final boolean keepInventoryIntegration;
     @NotNull public final List<String> commandsPunishmentDeath;
     @NotNull public final List<String> commandsPunishmentRespawn;
     @NotNull public final List<String> commandsRevive;
+    public final boolean stealing;
+    @Nullable public final Recipe recipe;
+    public final int recipeAmount;
 
     public LimitedConfig(@NotNull LimitedLives plugin) {
         final AnnoyingResource config = new AnnoyingResource(plugin, "config.yml");
+
+        // livesDefault, livesMax, & livesMin
+        final ConfigurationSection lives = config.getConfigurationSection("lives");
+        final boolean hasLives = lives != null;
+        livesDefault = hasLives ? lives.getInt("default", 5) : 5;
+        livesMax = hasLives ? lives.getInt("max", 10) : 10;
+        livesMin = hasLives ? lives.getInt("min", 0) : 0;
 
         // deathCauses
         deathCauses = config.getStringList("death-causes").stream()
@@ -47,6 +55,9 @@ public class LimitedConfig {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
+        // keepInventoryIntegration
+        keepInventoryIntegration = config.getBoolean("keep-inventory-integration", false);
+
         // commandsPunishmentDeath, commandsPunishmentRespawn, & commandsRevive
         final ConfigurationSection commands = config.getConfigurationSection("commands");
         final boolean hasCommands = commands != null;
@@ -55,13 +66,6 @@ public class LimitedConfig {
         commandsPunishmentDeath = hasPunishment ? punishment.getStringList("death") : Collections.emptyList();
         commandsPunishmentRespawn = hasPunishment ? punishment.getStringList("respawn") : Collections.emptyList();
         commandsRevive = hasCommands ? commands.getStringList("revive") : Collections.emptyList();
-
-        // livesDefault, livesMax, & livesMin
-        final ConfigurationSection lives = config.getConfigurationSection("lives");
-        final boolean hasLives = lives != null;
-        livesDefault = hasLives ? lives.getInt("default", 5) : 5;
-        livesMax = hasLives ? lives.getInt("max", 10) : 10;
-        livesMin = hasLives ? lives.getInt("min", 0) : 0;
 
         // stealing
         final ConfigurationSection obtaining = config.getConfigurationSection("obtaining");

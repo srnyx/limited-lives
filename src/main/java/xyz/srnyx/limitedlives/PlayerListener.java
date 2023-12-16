@@ -46,6 +46,8 @@ public class PlayerListener extends AnnoyingListener {
         if (newLives == null || newLives == plugin.config.livesMin) {
             // No more lives
             new AnnoyingMessage(plugin, "lives.zero").send(player);
+            // keepInventoryIntegration
+            if (plugin.config.keepInventoryIntegration && player.getWorld().getGameRuleValue("keepInventory").equals("true")) event.setKeepInventory(false);
         } else if (isPvp) {
             // Lose to player
             new AnnoyingMessage(plugin, "lives.lose.player")

@@ -13,6 +13,15 @@ lives:
 # Available causes: https://helpch.at/docs/MC_VERSION/org/bukkit/event/entity/EntityDamageEvent.DamageCause.html
 death-causes: []
 
+# true:
+#   keepInventory gamerule = true: players will only lose their inventories when they lose their last life
+#   keepInventory gamerule = false: players will lose their inventories when they lose any amount of lives (vanilla behavior)
+# false:
+#   keepInventory gamerule = true: players will keep their inventories when they lose any amount of lives (vanilla behavior)
+#   keepInventory gamerule = false: players will lose their inventories when they lose any amount of lives (vanilla behavior)
+# So, in order for this to have any effect, this and keepInventory must be both true
+keep-inventory-integration: false
+
 commands:
   # The commands that will be executed when a player loses all their lives (executed by the console)
   # %player% - The player that lost all their lives
