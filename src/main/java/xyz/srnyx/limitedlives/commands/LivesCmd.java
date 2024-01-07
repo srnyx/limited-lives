@@ -111,7 +111,7 @@ public class LivesCmd extends AnnoyingCommand {
             }
             if (playerLives <= lives) lives = playerLives - 1; // Player doesn't have enough lives, give as many as possible
             if (targetLives + lives > targetManager.getMaxLives()) lives = plugin.config.livesMax - targetLives; // Target can't receive that many lives, give as many as possible
-            if (lives <= 0) { // Lives is 0 or less (shouldn't happen)
+            if (lives <= 0) { // Lives is 0 or less (only happens if user inputs a negative number)
                 new AnnoyingMessage(plugin, "give.last-life").send(sender);
                 return;
             }
@@ -243,6 +243,7 @@ public class LivesCmd extends AnnoyingCommand {
             final int targetLives = data.manager.getLives();
             if (targetLives == 1) return null; // Target has 1 life left, if so, don't allow withdrawing lives
             if (targetLives <= data.lives) data.lives = targetLives - 1; // Target has enough lives, if not, take as many as possible
+            if (data.lives <= 0) return null; // Lives is 0 or less (only happens if user inputs a negative number)
             return data.manager.withdrawLives(data.sender, data.lives);
         });
 
