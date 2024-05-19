@@ -9,6 +9,7 @@ import com.sk89q.worldguard.protection.regions.RegionContainer;
 import org.bukkit.entity.Player;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import xyz.srnyx.annoyingapi.AnnoyingPlugin;
 
@@ -16,22 +17,23 @@ import java.util.logging.Level;
 
 
 public class WorldGuardManager {
-    private StateFlag flag;
-    private WorldGuardPlugin instance;
-    private RegionContainer regionContainer;
+    @Nullable private StateFlag flag;
+    @Nullable private WorldGuardPlugin instance;
+    @Nullable private RegionContainer regionContainer;
 
     public WorldGuardManager() {
         try {
             flag = new StateFlag("limited-lives", true);
             WorldGuard.getInstance().getFlagRegistry().register(flag);
             instance = WorldGuardPlugin.inst();
+            regionContainer = WorldGuard.getInstance().getPlatform().getRegionContainer();
         } catch (final RuntimeException e) {
             AnnoyingPlugin.log(Level.WARNING, "&cFailed to register WorldGuard flag!");
         }
     }
 
     public boolean test(@NotNull Player player) {
-        if (regionContainer == null) regionContainer = WorldGuard.getInstance().getPlatform().getRegionContainer();
+        if (flag == null || instance == null || regionContainer == null) return true;
         return regionContainer.createQuery().testState(BukkitAdapter.adapt(player.getLocation()), instance.wrapPlayer(player), flag);
     }
 }

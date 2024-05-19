@@ -1,6 +1,7 @@
 package xyz.srnyx.limitedlives.commands;
 
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -60,7 +61,7 @@ public class LivesCmd extends AnnoyingCommand {
         // get <player>
         if (sender.argEquals(0, "get")) {
             if (!sender.checkPermission("limitedlives.get.other")) return;
-            final Player player = Bukkit.getPlayer(args[1]);
+            final OfflinePlayer player = Bukkit.getOfflinePlayer(args[1]);
             if (player == null) {
                 sender.invalidArgument(args[1]);
                 return;
@@ -93,7 +94,7 @@ public class LivesCmd extends AnnoyingCommand {
             if (!sender.checkPlayer() || !sender.checkPermission("limitedlives.give")) return;
 
             // Get target and player
-            final Player target = Bukkit.getPlayer(args[2]);
+            final OfflinePlayer target = Bukkit.getOfflinePlayer(args[2]);
             if (target == null) {
                 sender.invalidArgument(args[2]);
                 return;
@@ -110,7 +111,7 @@ public class LivesCmd extends AnnoyingCommand {
                 return;
             }
             if (playerLives <= lives) lives = playerLives - 1; // Player doesn't have enough lives, give as many as possible
-            if (targetLives + lives > targetManager.getMaxLives()) lives = plugin.config.livesMax - targetLives; // Target can't receive that many lives, give as many as possible
+            if (targetLives + lives > targetManager.getMaxLives()) lives = plugin.config.lives.max - targetLives; // Target can't receive that many lives, give as many as possible
             if (lives <= 0) { // Lives is 0 or less (only happens if user inputs a negative number)
                 new AnnoyingMessage(plugin, "give.last-life").send(sender);
                 return;
@@ -134,13 +135,13 @@ public class LivesCmd extends AnnoyingCommand {
                     .replace("%targetlives%", newTargetLives)
                     .replace("%amount%", lives)
                     .send(sender);
-            new AnnoyingMessage(plugin, "give.target")
+            if (target instanceof Player) new AnnoyingMessage(plugin, "give.target")
                     .replace("%player%", playerName)
                     .replace("%target%", targetName)
                     .replace("%playerlives%", newPlayerLives)
                     .replace("%targetlives%", newTargetLives)
                     .replace("%amount%", lives)
-                    .send(target);
+                    .send((Player) target);
 
             return;
         }
@@ -171,7 +172,7 @@ public class LivesCmd extends AnnoyingCommand {
 
         // <action> <lives> <player>
         if ((action.playerOnly && !sender.checkPlayer()) || !sender.checkPermission("limitedlives." + action + ".other")) return;
-        final Player target = Bukkit.getPlayer(args[2]);
+        final OfflinePlayer target = Bukkit.getOfflinePlayer(args[2]);
         if (target == null) {
             sender.invalidArgument(args[2]);
             return;
@@ -224,7 +225,7 @@ public class LivesCmd extends AnnoyingCommand {
         @NotNull private final Player sender;
         private int lives;
 
-        public ModificationData(@NotNull LimitedLives plugin, @NotNull Player sender, @NotNull Player target, int lives) {
+        public ModificationData(@NotNull LimitedLives plugin, @NotNull Player sender, @NotNull OfflinePlayer target, int lives) {
             manager = new PlayerManager(plugin, target);
             this.sender = sender;
             this.lives = lives;

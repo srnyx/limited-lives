@@ -10,17 +10,33 @@ lives:
   min: 0
 
 # The causes that will result in a player to losing a life, leave empty for all causes
-# Available causes: https://helpch.at/docs/MC_VERSION/org/bukkit/event/entity/EntityDamageEvent.DamageCause.html
+# Available causes: https://srnyx.com/docs/spigot/org/bukkit/event/entity/EntityDamageEvent.DamageCause.html
 death-causes: []
 
-# true:
-#   keepInventory gamerule = true: players will only lose their inventories when they lose their last life
-#   keepInventory gamerule = false: players will lose their inventories when they lose any amount of lives (vanilla behavior)
-# false:
-#   keepInventory gamerule = true: players will keep their inventories when they lose any amount of lives (vanilla behavior)
-#   keepInventory gamerule = false: players will lose their inventories when they lose any amount of lives (vanilla behavior)
-# So, in order for this to have any effect, this and keepInventory must be both true
-keep-inventory-integration: false
+# THE keepInventory GAMERULE MUST BE SET TO false FOR THIS TO WORK (the plugin will disable it if it's enabled)!
+# If it isn't, some players' inventories may be permanently lost!
+keep-inventory:
+  # This will toggle this entire feature on or off
+  enabled: false
+  # The actions that will be taken when a player dies for the X time (death count is calculated using: max lives - current lives)
+  # keep: Keep the player's inventory, as if keepInventory was true
+  # drop: Drop the player's inventory on the ground, as if keepInventory was false
+  # destroy: Destroy all items in the player's inventory
+  actions:
+    default: keep # The default action if the death isn't specified below
+    1: destroy # EXAMPLE: This would destroy the player's inventory on their 1st death
+    5: drop # EXAMPLE: This would drop the player's inventory on their 5th death
+    10: drop # EXAMPLE: This would drop the player's inventory on their 10th death
+
+# A period of time after a player joins the server and/or is revived where they won't lose lives
+grace-period:
+  # Whether to enable the grace period
+  enabled: false
+  # The duration of the grace period in seconds
+  duration: 60 # seconds
+  # Death causes that will bypass the grace period, aka the player will lose a life
+  # Available causes: https://srnyx.com/docs/spigot/org/bukkit/event/entity/EntityDamageEvent.DamageCause.html
+  bypass-causes: []
 
 commands:
   # The commands that will be executed when a player loses all their lives (executed by the console)
@@ -61,6 +77,6 @@ obtaining:
         lore:
           - "&7Eat to gain a life!"
         enchantments:
-          DURABILITY: 1
+          LURE: 1
         flags:
           - HIDE_ENCHANTS

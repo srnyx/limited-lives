@@ -1,7 +1,9 @@
 package xyz.srnyx.limitedlives;
 
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.Recipe;
 
 import org.jetbrains.annotations.NotNull;
@@ -11,39 +13,34 @@ import xyz.srnyx.annoyingapi.AnnoyingPlugin;
 import xyz.srnyx.annoyingapi.data.ItemData;
 import xyz.srnyx.annoyingapi.file.AnnoyingResource;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 
 public class LimitedConfig {
-    public final int livesDefault;
-    public final int livesMax;
-    public final int livesMin;
+    @NotNull private final AnnoyingResource config;
+    @NotNull public final Lives lives;
     @NotNull public final Set<EntityDamageEvent.DamageCause> deathCauses;
-    public final boolean keepInventoryIntegration;
-    @NotNull public final List<String> commandsPunishmentDeath;
-    @NotNull public final List<String> commandsPunishmentRespawn;
-    @NotNull public final List<String> commandsRevive;
-    public final boolean stealing;
-    @Nullable public final Recipe recipe;
-    public final int recipeAmount;
+    @NotNull public final KeepInventory keepInventory;
+    @NotNull public final GracePeriod gracePeriod;
+    @NotNull public final Commands commands;
+    @NotNull public final Obtaining obtaining;
 
     public LimitedConfig(@NotNull LimitedLives plugin) {
-        final AnnoyingResource config = new AnnoyingResource(plugin, "config.yml");
+        config = new AnnoyingResource(plugin, "config.yml");
+        lives = new Lives();
+        deathCauses = getDamageCauses(config.getStringList("death-causes"));
+        keepInventory = new KeepInventory();
+        gracePeriod = new GracePeriod();
+        commands = new Commands();
+        obtaining = new Obtaining();
+    }
 
-        // livesDefault, livesMax, & livesMin
-        final ConfigurationSection lives = config.getConfigurationSection("lives");
-        final boolean hasLives = lives != null;
-        livesDefault = hasLives ? lives.getInt("default", 5) : 5;
-        livesMax = hasLives ? lives.getInt("max", 10) : 10;
-        livesMin = hasLives ? lives.getInt("min", 0) : 0;
-
-        // deathCauses
-        deathCauses = config.getStringList("death-causes").stream()
+    @NotNull
+    private static Set<EntityDamageEvent.DamageCause> getDamageCauses(@NotNull Collection<String> collection) {
+        return collection.stream()
                 .map(string -> {
                     try {
                         return EntityDamageEvent.DamageCause.valueOf(string.toUpperCase());
@@ -54,28 +51,112 @@ public class LimitedConfig {
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
+    }
 
-        // keepInventoryIntegration
-        keepInventoryIntegration = config.getBoolean("keep-inventory-integration", false);
+    public class Lives {
+        public final int def = config.getInt("lives.default", 5);
+        public final int max = config.getInt("lives.max", 10);
+        public final int min = config.getInt("lives.min", 0);
+    }
 
-        // commandsPunishmentDeath, commandsPunishmentRespawn, & commandsRevive
-        final ConfigurationSection commands = config.getConfigurationSection("commands");
-        final boolean hasCommands = commands != null;
-        final ConfigurationSection punishment = hasCommands ? commands.getConfigurationSection("punishment") : null;
-        final boolean hasPunishment = punishment != null;
-        commandsPunishmentDeath = hasPunishment ? punishment.getStringList("death") : Collections.emptyList();
-        commandsPunishmentRespawn = hasPunishment ? punishment.getStringList("respawn") : Collections.emptyList();
-        commandsRevive = hasCommands ? commands.getStringList("revive") : Collections.emptyList();
+    public class KeepInventory {
+        public final boolean enabled = config.getBoolean("keep-inventory.enabled", false);
+        @NotNull public final Actions actions = new Actions();
 
-        // stealing
-        final ConfigurationSection obtaining = config.getConfigurationSection("obtaining");
-        final boolean hasObtaining = obtaining != null;
-        stealing = hasObtaining && obtaining.getBoolean("stealing", true);
+        public KeepInventory() {
+            // Disable keepInventory in worlds where it is enabled
+            if (enabled) Bukkit.getWorlds().stream()
+                    .filter(world -> world.getGameRuleValue("keepInventory").equals("true"))
+                    .forEach(world -> {
+                        AnnoyingPlugin.log(Level.WARNING, "keepInventory is enabled in " + world.getName() + "! The plugin is disabling it to ensure the keep-inventory feature works properly");
+                        world.setGameRuleValue("keepInventory", "false");
+                    });
+        }
 
-        // recipe
-        final ConfigurationSection crafting = hasObtaining ? obtaining.getConfigurationSection("crafting") : null;
-        final boolean hasCrafting = crafting != null;
-        recipeAmount = hasCrafting ? crafting.getInt("amount", 1) : 1;
-        recipe = hasCrafting && crafting.getBoolean("enabled", true) ? config.getRecipe("obtaining.crafting.recipe", item -> new ItemData(plugin, item).set(PlayerManager.ITEM_KEY, true).target, null, "life") : null;
+        public class Actions {
+            @NotNull private final KeepInventoryAction def;
+            @NotNull private final Map<Integer, KeepInventoryAction> exact = new HashMap<>();
+
+            public Actions() {
+                // def
+                final KeepInventoryAction defAction = KeepInventoryAction.fromString(config.getString("keep-inventory.actions.default"));
+                def = defAction != null ? defAction : KeepInventoryAction.KEEP;
+
+                // actions
+                final ConfigurationSection section = config.getConfigurationSection("keep-inventory.actions");
+                if (section != null) for (final String key : section.getKeys(false)) {
+                    if (key.equals("default") || key.equals("first") || key.equals("last")) continue;
+                    final int count;
+                    try {
+                        count = Integer.parseInt(key);
+                    } catch (final NumberFormatException e) {
+                        AnnoyingPlugin.log(Level.WARNING, "Invalid keep inventory action count: " + key);
+                        continue;
+                    }
+                    final KeepInventoryAction action = KeepInventoryAction.fromString(config.getString("keep-inventory.actions." + key));
+                    if (action != null) exact.put(count, action);
+                }
+            }
+
+            @NotNull
+            public KeepInventoryAction getAction(int deaths) {
+                final KeepInventoryAction action = exact.get(deaths);
+                return action != null ? action : def;
+            }
+        }
+    }
+
+    public class GracePeriod {
+        public final boolean enabled = config.getBoolean("grace-period.enabled", false);
+        public final int duration = config.getInt("grace-period.duration", 60) * 1000;
+        @NotNull public final Set<EntityDamageEvent.DamageCause> bypassCauses = getDamageCauses(config.getStringList("grace-period.bypass-causes"));
+    }
+
+    public class Commands {
+        @NotNull public final Punishment punishment = new Punishment();
+        @NotNull public final List<String> revive = config.getStringList("commands.revive");
+
+        public class Punishment {
+            @NotNull public final List<String> death = config.getStringList("commands.punishment.death");
+            @NotNull public final List<String> respawn = config.getStringList("commands.punishment.respawn");
+        }
+    }
+
+    public class Obtaining {
+        public final boolean stealing = config.getBoolean("obtaining.stealing", true);
+        @NotNull public final Crafting crafting = new Crafting();
+
+        public class Crafting {
+            public final int amount = config.getInt("obtaining.crafting.amount", 1);
+            @Nullable public final Recipe recipe = config.getBoolean("obtaining.crafting.enabled", true) ? config.getRecipe("obtaining.crafting.recipe", item -> new ItemData(config.plugin, item).setChain(PlayerManager.ITEM_KEY, true).target, null, "life") : null;
+        }
+    }
+
+    public enum KeepInventoryAction {
+        KEEP(event -> {
+            event.getDrops().clear();
+            event.setKeepInventory(true);
+        }),
+        DROP(event -> event.setKeepInventory(false)),
+        DESTROY(event -> {
+            event.getDrops().clear();
+            event.setKeepInventory(false);
+        });
+
+        @NotNull public final Consumer<PlayerDeathEvent> consumer;
+
+        KeepInventoryAction(@NotNull Consumer<PlayerDeathEvent> consumer) {
+            this.consumer = consumer;
+        }
+
+        @Nullable
+        public static KeepInventoryAction fromString(@Nullable String string) {
+            if (string != null) try {
+                return valueOf(string.toUpperCase());
+            } catch (final IllegalArgumentException e) {
+                AnnoyingPlugin.log(Level.WARNING, "Invalid keep inventory action: " + string);
+            }
+            return null;
+        }
     }
 }

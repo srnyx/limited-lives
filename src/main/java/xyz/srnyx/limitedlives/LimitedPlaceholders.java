@@ -28,24 +28,48 @@ public class LimitedPlaceholders extends AnnoyingPAPIExpansion {
 
     @Override @Nullable
     public String onPlaceholderRequest(@Nullable Player player, @NotNull String identifier) {
-        // lives
-        if (player != null && identifier.equals("lives")) return String.valueOf(new PlayerManager(plugin, player).getLives());
+        if (player != null) switch (identifier) {
+            // lives
+            case "lives": return String.valueOf(new PlayerManager(plugin, player).getLives());
+            // max
+            case "max": return String.valueOf(new PlayerManager(plugin, player).getMaxLives());
+            // grace
+            case "grace": return String.valueOf(new PlayerManager(plugin, player).hasGrace());
+            // graceremaining
+            case "graceremaining": return String.valueOf(new PlayerManager(plugin, player).getGraceLeft());
+        }
 
         // lives_PLAYER
         if (identifier.startsWith("lives_")) {
             final Player target = Bukkit.getPlayerExact(identifier.substring(6));
             return target == null ? "N/A" : String.valueOf(new PlayerManager(plugin, target).getLives());
         }
+        // max_PLAYER
+        if (identifier.startsWith("max_")) {
+            final Player target = Bukkit.getPlayerExact(identifier.substring(4));
+            return target == null ? "N/A" : String.valueOf(new PlayerManager(plugin, target).getMaxLives());
+        }
+        // grace_PLAYER
+        if (identifier.startsWith("grace_")) {
+            final Player target = Bukkit.getPlayerExact(identifier.substring(6));
+            return target == null ? "N/A" : String.valueOf(new PlayerManager(plugin, target).hasGrace());
+        }
+        // graceremaining_PLAYER
+        if (identifier.startsWith("graceremaining_")) {
+            final Player target = Bukkit.getPlayerExact(identifier.substring(11));
+            return target == null ? "N/A" : String.valueOf(new PlayerManager(plugin, target).getGraceLeft());
+        }
 
-        // default
-        if (identifier.equals("default")) return String.valueOf(plugin.config.livesDefault);
+        switch (identifier) {
+            // default
+            case "default": return String.valueOf(plugin.config.lives.def);
+            // max
+            case "max": return String.valueOf(plugin.config.lives.max);
+            // min
+            case "min": return String.valueOf(plugin.config.lives.min);
 
-        // max
-        if (identifier.equals("max")) return String.valueOf(player == null ? plugin.config.livesMax : new PlayerManager(plugin, player).getMaxLives());
-
-        // min
-        if (identifier.equals("min")) return String.valueOf(plugin.config.livesMin);
-
-        return null;
+            // Unknown
+            default: return null;
+        }
     }
 }

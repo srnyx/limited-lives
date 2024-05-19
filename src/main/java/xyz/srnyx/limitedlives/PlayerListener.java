@@ -7,6 +7,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -34,20 +35,33 @@ public class PlayerListener extends AnnoyingListener {
 
     @EventHandler
     public void onPlayerDeath(@NotNull PlayerDeathEvent event) {
-        // Check death cause and WorldGuard regions
+        // Check death cause
         final Player player = event.getEntity();
         final EntityDamageEvent damageEvent = player.getLastDamageCause();
-        if ((damageEvent != null && !plugin.config.deathCauses.isEmpty() && !plugin.config.deathCauses.contains(damageEvent.getCause())) || (plugin.worldGuard != null && !plugin.worldGuard.test(player))) return;
+        final EntityDamageEvent.DamageCause cause = damageEvent != null ? damageEvent.getCause() : null;
+        if (cause != null && !plugin.config.deathCauses.isEmpty() && !plugin.config.deathCauses.contains(cause)) return;
+
+        // Check WorldGuard regions
+        if (plugin.worldGuard != null && !plugin.worldGuard.test(player)) return;
+
+        // Check grace
+        final PlayerManager manager = new PlayerManager(plugin, player);
+        if (plugin.config.gracePeriod.enabled && (cause == null || !plugin.config.gracePeriod.bypassCauses.contains(cause)) && manager.hasGrace()) {
+            new AnnoyingMessage(plugin, "grace")
+                    .replace("%remaining%", manager.getGraceLeft())
+                    .send(player);
+            return;
+        }
+
+        // Get killer
         final Player killer = player.getKiller();
         final boolean isPvp = killer != null && killer != player;
 
         // Remove life
-        final Integer newLives = new PlayerManager(plugin, player).removeLives(1, killer);
-        if (newLives == null || newLives == plugin.config.livesMin) {
+        final Integer newLives = manager.removeLives(1, killer);
+        if (newLives == null || newLives == plugin.config.lives.min) {
             // No more lives
             new AnnoyingMessage(plugin, "lives.zero").send(player);
-            // keepInventoryIntegration
-            if (plugin.config.keepInventoryIntegration && player.getWorld().getGameRuleValue("keepInventory").equals("true")) event.setKeepInventory(false);
         } else if (isPvp) {
             // Lose to player
             new AnnoyingMessage(plugin, "lives.lose.player")
@@ -61,8 +75,11 @@ public class PlayerListener extends AnnoyingListener {
                     .send(player);
         }
 
+        // keepInventory integration
+        if (plugin.config.keepInventory.enabled) plugin.config.keepInventory.actions.getAction(manager.getDeaths()).consumer.accept(event);
+
         // Give life to killer
-        if (!plugin.config.stealing || !isPvp) return;
+        if (!plugin.config.obtaining.stealing || !isPvp) return;
         final Integer newKillerLives = new PlayerManager(plugin, killer).addLives(1);
         if (newKillerLives != null) new AnnoyingMessage(plugin, "lives.steal")
                 .replace("%target%", player.getName())
@@ -86,25 +103,34 @@ public class PlayerListener extends AnnoyingListener {
         final OfflinePlayer finalKiller = killer;
         new BukkitRunnable() {
             public void run() {
-                PlayerManager.dispatchCommands(plugin.config.commandsPunishmentRespawn, player, finalKiller);
+                PlayerManager.dispatchCommands(plugin.config.commands.punishment.respawn, player, finalKiller);
             }
         }.runTaskLater(plugin, 1);
     }
 
     @EventHandler
     public void onPlayerItemConsume(@NotNull PlayerItemConsumeEvent event) {
-        if (plugin.config.recipe == null || !new ItemData(plugin, event.getItem()).has(PlayerManager.ITEM_KEY)) return;
+        if (plugin.config.obtaining.crafting.recipe == null || !new ItemData(plugin, event.getItem()).has(PlayerManager.ITEM_KEY)) return;
         final Player player = event.getPlayer();
-        final Integer newLives = new PlayerManager(plugin, player).addLives(plugin.config.recipeAmount);
+        final Integer newLives = new PlayerManager(plugin, player).addLives(plugin.config.obtaining.crafting.amount);
         if (newLives == null) {
             event.setCancelled(true);
             new AnnoyingMessage(plugin, "eat.max")
-                    .replace("%max%", plugin.config.livesMax)
+                    .replace("%max%", plugin.config.lives.max)
                     .send(player);
             return;
         }
         new AnnoyingMessage(plugin, "eat.success")
                 .replace("%lives%", newLives)
                 .send(player);
+    }
+
+    @EventHandler
+    public void onPlayerJoin(@NotNull PlayerJoinEvent event) {
+        final EntityData data = (EntityData) new PlayerManager(plugin, event.getPlayer()).data;
+        // Convert old data
+        data.convertOldData(true, PlayerManager.LIVES_KEY, PlayerManager.DEAD_KEY);
+        // Set FIRST_JOIN_KEY
+        if (plugin.config.gracePeriod.enabled && !data.has(PlayerManager.FIRST_JOIN_KEY)) data.set(PlayerManager.FIRST_JOIN_KEY, System.currentTimeMillis());
     }
 }

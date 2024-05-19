@@ -45,6 +45,7 @@ lives:
     other: "%p%You lost a life, you now have %s%%lives%%p%!"
   zero: "%p%You lost all your lives!"
   steal: "%p%You stole a life from %s%%target%%p%, you now have %s%%lives%%p%!" # %target%, %lives%
+  grace: "%p%You didn't lose a life because you're in the grace period! You have %s%%remaining==s%%p% seconds left of grace" # %remaining==time%
 
 eat:
   success: "%p%You ate a life, you now have %s%%lives%%p% lives!" # %lives%

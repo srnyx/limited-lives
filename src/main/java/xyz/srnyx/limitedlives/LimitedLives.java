@@ -39,6 +39,12 @@ public class LimitedLives extends AnnoyingPlugin {
                         PluginPlatform.hangar(this, "srnyx"),
                         PluginPlatform.spigot("109078"))))
                 .bStatsOptions(bStatsOptions -> bStatsOptions.id(18304))
+                .dataOptions(dataOptions -> dataOptions
+                        .enabled(true)
+                        .entityDataColumns(
+                                PlayerManager.LIVES_KEY,
+                                PlayerManager.DEAD_KEY,
+                                PlayerManager.FIRST_JOIN_KEY))
                 .registrationOptions
                 .toRegister(this, PlayerListener.class)
                 .papiExpansionToRegister(() -> new LimitedPlaceholders(this))
@@ -86,7 +92,7 @@ public class LimitedLives extends AnnoyingPlugin {
 
     @Override
     public void enable() {
-        if (config.recipe != null) Bukkit.addRecipe(config.recipe);
+        if (config.obtaining.crafting.recipe != null) Bukkit.addRecipe(config.obtaining.crafting.recipe);
     }
 
     @Override

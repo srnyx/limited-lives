@@ -49,3 +49,4 @@ permissions:
     description: Allows the player to use /lives give
   limitedlives.max.#:
     description: Gives the player their own specific max lives
+    default: false
