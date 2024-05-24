@@ -10,7 +10,9 @@ lives:
   min: 0
 
 # The causes that will result in a player to losing a life, leave empty for all causes
-# Available causes: https://srnyx.com/docs/spigot/org/bukkit/event/entity/EntityDamageEvent.DamageCause.html
+# Available causes:
+# - https://srnyx.com/docs/spigot/org/bukkit/event/entity/EntityDamageEvent.DamageCause.html
+# - PLAYER_ATTACK: Damage caused when a player attacks another player (PVP)
 death-causes: []
 
 # THE keepInventory GAMERULE MUST BE SET TO false FOR THIS TO WORK (the plugin will disable it if it's enabled)!
@@ -35,7 +37,9 @@ grace-period:
   # The duration of the grace period in seconds
   duration: 60 # seconds
   # Death causes that will bypass the grace period, aka the player will lose a life
-  # Available causes: https://srnyx.com/docs/spigot/org/bukkit/event/entity/EntityDamageEvent.DamageCause.html
+  # Available causes:
+  # - https://srnyx.com/docs/spigot/org/bukkit/event/entity/EntityDamageEvent.DamageCause.html
+  # - PLAYER_ATTACK: Damage caused when a player attacks another player (PVP)
   bypass-causes: []
 
 commands:

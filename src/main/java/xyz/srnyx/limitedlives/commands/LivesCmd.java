@@ -1,6 +1,5 @@
 package xyz.srnyx.limitedlives.commands;
 
-import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -61,7 +60,7 @@ public class LivesCmd extends AnnoyingCommand {
         // get <player>
         if (sender.argEquals(0, "get")) {
             if (!sender.checkPermission("limitedlives.get.other")) return;
-            final OfflinePlayer player = Bukkit.getOfflinePlayer(args[1]);
+            final OfflinePlayer player = BukkitUtility.getOfflinePlayer(args[1]);
             if (player == null) {
                 sender.invalidArgument(args[1]);
                 return;
@@ -94,7 +93,7 @@ public class LivesCmd extends AnnoyingCommand {
             if (!sender.checkPlayer() || !sender.checkPermission("limitedlives.give")) return;
 
             // Get target and player
-            final OfflinePlayer target = Bukkit.getOfflinePlayer(args[2]);
+            final OfflinePlayer target = BukkitUtility.getOfflinePlayer(args[2]);
             if (target == null) {
                 sender.invalidArgument(args[2]);
                 return;
@@ -172,7 +171,7 @@ public class LivesCmd extends AnnoyingCommand {
 
         // <action> <lives> <player>
         if ((action.playerOnly && !sender.checkPlayer()) || !sender.checkPermission("limitedlives." + action + ".other")) return;
-        final OfflinePlayer target = Bukkit.getOfflinePlayer(args[2]);
+        final OfflinePlayer target = BukkitUtility.getOfflinePlayer(args[2]);
         if (target == null) {
             sender.invalidArgument(args[2]);
             return;

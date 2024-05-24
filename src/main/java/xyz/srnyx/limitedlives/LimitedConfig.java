@@ -2,7 +2,6 @@ package xyz.srnyx.limitedlives;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.Recipe;
 
@@ -22,7 +21,7 @@ import java.util.stream.Collectors;
 public class LimitedConfig {
     @NotNull private final AnnoyingResource config;
     @NotNull public final Lives lives;
-    @NotNull public final Set<EntityDamageEvent.DamageCause> deathCauses;
+    @NotNull public final Set<String> deathCauses;
     @NotNull public final KeepInventory keepInventory;
     @NotNull public final GracePeriod gracePeriod;
     @NotNull public final Commands commands;
@@ -39,17 +38,9 @@ public class LimitedConfig {
     }
 
     @NotNull
-    private static Set<EntityDamageEvent.DamageCause> getDamageCauses(@NotNull Collection<String> collection) {
+    private static Set<String> getDamageCauses(@NotNull Collection<String> collection) {
         return collection.stream()
-                .map(string -> {
-                    try {
-                        return EntityDamageEvent.DamageCause.valueOf(string.toUpperCase());
-                    } catch (final IllegalArgumentException e) {
-                        AnnoyingPlugin.log(Level.WARNING, "Invalid death cause: " + string);
-                        return null;
-                    }
-                })
-                .filter(Objects::nonNull)
+                .map(String::toUpperCase)
                 .collect(Collectors.toSet());
     }
 
@@ -109,7 +100,7 @@ public class LimitedConfig {
     public class GracePeriod {
         public final boolean enabled = config.getBoolean("grace-period.enabled", false);
         public final int duration = config.getInt("grace-period.duration", 60) * 1000;
-        @NotNull public final Set<EntityDamageEvent.DamageCause> bypassCauses = getDamageCauses(config.getStringList("grace-period.bypass-causes"));
+        @NotNull public final Set<String> bypassCauses = getDamageCauses(config.getStringList("grace-period.bypass-causes"));
     }
 
     public class Commands {

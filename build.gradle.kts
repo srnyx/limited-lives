@@ -10,7 +10,7 @@ plugins {
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
-setupAnnoyingAPI("2bd3a97002", "xyz.srnyx", "3.0.1", "Each player has a limited number of lives. If you die, you are punished")
+setupAnnoyingAPI("ef15b8c14f", "xyz.srnyx", "3.0.1", "Each player has a limited number of lives. If you die, you are punished")
 spigotAPI("1.8.8")
 repository(Repository.PLACEHOLDER_API)
 repository("https://maven.enginehub.org/repo/")

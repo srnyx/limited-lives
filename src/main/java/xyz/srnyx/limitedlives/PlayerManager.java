@@ -9,7 +9,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import xyz.srnyx.annoyingapi.AnnoyingPlugin;
-import xyz.srnyx.annoyingapi.data.EntityData;
 import xyz.srnyx.annoyingapi.data.StringData;
 import xyz.srnyx.annoyingapi.utility.BukkitUtility;
 
@@ -24,13 +23,13 @@ public class PlayerManager {
     @NotNull public static final String ITEM_KEY = "ll_item";
 
     @NotNull private final LimitedLives plugin;
-    @NotNull private final OfflinePlayer player;
-    @NotNull public final StringData data;
+    @NotNull private final OfflinePlayer offline;
+    @NotNull private final StringData data;
 
-    public PlayerManager(@NotNull LimitedLives plugin, @NotNull OfflinePlayer player) {
+    public PlayerManager(@NotNull LimitedLives plugin, @NotNull OfflinePlayer offline) {
         this.plugin = plugin;
-        this.player = player;
-        this.data = player instanceof Player ? new EntityData(plugin, (Player) player) : new StringData(plugin, EntityData.TABLE_NAME, player.getUniqueId().toString());
+        this.offline = offline;
+        this.data = new StringData(plugin, offline);
     }
 
     public int getLives() {
@@ -38,14 +37,15 @@ public class PlayerManager {
         if (livesString != null) try {
             return Integer.parseInt(livesString);
         } catch (final NumberFormatException e) {
-            AnnoyingPlugin.log(Level.WARNING, "&cRemoving invalid lives from &4" + player.getName() + "&c: &4" + livesString);
+            AnnoyingPlugin.log(Level.WARNING, "&cRemoving invalid lives from &4" + offline.getName() + "&c: &4" + livesString);
             data.remove(LIVES_KEY);
         }
         return plugin.config.lives.def;
     }
 
     public int getMaxLives() {
-        return player instanceof Player ? BukkitUtility.getPermissionValue((Player) player, "limitedlives.max.", plugin.config.lives.max) : plugin.config.lives.max;
+        final Player online = offline.getPlayer();
+        return online != null ? BukkitUtility.getPermissionValue(online, "limitedlives.max.", plugin.config.lives.max) : plugin.config.lives.max;
     }
 
     /**
@@ -63,7 +63,7 @@ public class PlayerManager {
         if (firstJoin != null) try {
             return plugin.config.gracePeriod.duration - (System.currentTimeMillis() - Long.parseLong(firstJoin));
         } catch (final IllegalArgumentException e) {
-            AnnoyingPlugin.log(Level.WARNING, "&cInvalid " + FIRST_JOIN_KEY + " value for &4" + player.getName() + "&c: &4" + firstJoin);
+            AnnoyingPlugin.log(Level.WARNING, "&cInvalid " + FIRST_JOIN_KEY + " value for &4" + offline.getName() + "&c: &4" + firstJoin);
             data.remove(FIRST_JOIN_KEY);
         }
         return 0;
@@ -108,17 +108,19 @@ public class PlayerManager {
         final ItemStack item = plugin.config.obtaining.crafting.recipe.getResult();
         item.setAmount(amount);
         sender.getInventory().addItem(item);
-        return new PlayerManager(plugin, player).removeLives(amount, null);
+        return new PlayerManager(plugin, offline).removeLives(amount, null);
     }
 
     private void revive() {
         data.remove(DEAD_KEY);
-        if (player instanceof Player) dispatchCommands(plugin.config.commands.revive, (Player) player, null);
+        final Player online = offline.getPlayer();
+        if (online != null) dispatchCommands(plugin.config.commands.revive, online, null);
     }
 
     private void kill(@Nullable Player killer) {
         data.set(DEAD_KEY, killer != null ? killer.getUniqueId().toString() : "null");
-        if (player instanceof Player) dispatchCommands(plugin.config.commands.punishment.death, (Player) player, killer);
+        final Player online = offline.getPlayer();
+        if (online != null) dispatchCommands(plugin.config.commands.punishment.death, online, killer);
     }
 
     public static void dispatchCommands(@NotNull List<String> commands, @NotNull Player player, @Nullable OfflinePlayer killer) {

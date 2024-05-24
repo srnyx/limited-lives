@@ -35,15 +35,22 @@ public class PlayerListener extends AnnoyingListener {
 
     @EventHandler
     public void onPlayerDeath(@NotNull PlayerDeathEvent event) {
-        // Check death cause
+        // Get killer
         final Player player = event.getEntity();
-        final EntityDamageEvent damageEvent = player.getLastDamageCause();
-        final EntityDamageEvent.DamageCause cause = damageEvent != null ? damageEvent.getCause() : null;
-        if (cause != null && !plugin.config.deathCauses.isEmpty() && !plugin.config.deathCauses.contains(cause)) return;
+        final Player killer = player.getKiller();
+        final boolean isPvp = killer != null && killer != player;
 
+        // Get death cause
+        String cause = "PLAYER_ATTACK";
+        if (!isPvp) {
+            final EntityDamageEvent damageEvent = player.getLastDamageCause();
+            cause = damageEvent != null ? damageEvent.getCause().name() : null;
+        }
+
+        // Check death cause
+        if (cause != null && !plugin.config.deathCauses.isEmpty() && !plugin.config.deathCauses.contains(cause)) return;
         // Check WorldGuard regions
         if (plugin.worldGuard != null && !plugin.worldGuard.test(player)) return;
-
         // Check grace
         final PlayerManager manager = new PlayerManager(plugin, player);
         if (plugin.config.gracePeriod.enabled && (cause == null || !plugin.config.gracePeriod.bypassCauses.contains(cause)) && manager.hasGrace()) {
@@ -52,10 +59,6 @@ public class PlayerListener extends AnnoyingListener {
                     .send(player);
             return;
         }
-
-        // Get killer
-        final Player killer = player.getKiller();
-        final boolean isPvp = killer != null && killer != player;
 
         // Remove life
         final Integer newLives = manager.removeLives(1, killer);
@@ -127,7 +130,7 @@ public class PlayerListener extends AnnoyingListener {
 
     @EventHandler
     public void onPlayerJoin(@NotNull PlayerJoinEvent event) {
-        final EntityData data = (EntityData) new PlayerManager(plugin, event.getPlayer()).data;
+        final EntityData data = new EntityData(plugin, event.getPlayer());
         // Convert old data
         data.convertOldData(true, PlayerManager.LIVES_KEY, PlayerManager.DEAD_KEY);
         // Set FIRST_JOIN_KEY
