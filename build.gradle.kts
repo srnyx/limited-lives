@@ -6,12 +6,13 @@ import xyz.srnyx.gradlegalaxy.utility.spigotAPI
 
 plugins {
     java
-    id("xyz.srnyx.gradle-galaxy") version "1.1.2"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("xyz.srnyx.gradle-galaxy") version "1.2.1"
+    id("io.github.goooler.shadow") version "8.1.7"
 }
 
-setupAnnoyingAPI("ef15b8c14f", "xyz.srnyx", "3.0.1", "Each player has a limited number of lives. If you die, you are punished")
+setupAnnoyingAPI("d2d56af57b", "xyz.srnyx", "3.0.1", "Each player has a limited number of lives. If you die, you are punished")
 spigotAPI("1.8.8")
+
 repository(Repository.PLACEHOLDER_API)
 repository("https://maven.enginehub.org/repo/")
 

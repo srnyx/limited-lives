@@ -4,7 +4,7 @@ authors:
   - srnyx
 website: https://srnyx.com
 
-main: ${group}.limitedlives.LimitedLives
+main: ${mainPackage}.LimitedLives
 version: ${version}
 api-version: 1.13
 
