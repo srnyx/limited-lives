@@ -10,7 +10,7 @@ plugins {
     id("io.github.goooler.shadow") version "8.1.7"
 }
 
-setupAnnoyingAPI("d2d56af57b", "xyz.srnyx", "3.0.1", "Each player has a limited number of lives. If you die, you are punished")
+setupAnnoyingAPI("0cfd8259db", "xyz.srnyx", "3.0.1", "Each player has a limited number of lives. If you die, you are punished")
 spigotAPI("1.8.8")
 
 repository(Repository.PLACEHOLDER_API)
