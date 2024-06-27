@@ -37,7 +37,7 @@ error:
   # Command is used when it's disabled
   disabled-command: "%prefix%%se%%command%%pe% is disabled!@@%pe%%command%@@%command%"
 
-reload: "%prefix%Successfully reloaded the plugin"
+reload: "%prefix%Successfully reloaded the plugin@@%p%%command%@@%command%"
 
 lives:
   lose: # %lives%

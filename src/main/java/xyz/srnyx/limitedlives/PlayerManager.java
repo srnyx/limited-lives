@@ -108,7 +108,7 @@ public class PlayerManager {
         final ItemStack item = plugin.config.obtaining.crafting.recipe.getResult();
         item.setAmount(amount);
         sender.getInventory().addItem(item);
-        return new PlayerManager(plugin, offline).removeLives(amount, null);
+        return removeLives(amount, null);
     }
 
     private void revive() {

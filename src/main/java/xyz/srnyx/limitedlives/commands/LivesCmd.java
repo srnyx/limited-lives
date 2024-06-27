@@ -157,7 +157,7 @@ public class LivesCmd extends AnnoyingCommand {
         // <action> <lives>
         if (args.length == 2) {
             if (!sender.checkPlayer() || !sender.checkPermission("limitedlives." + action + ".self")) return;
-            final Integer newLives = action.process(new ModificationData(plugin, sender.getPlayer(), lives));
+            final Integer newLives = action.function.apply(new ModificationData(plugin, sender.getPlayer(), lives));
             if (newLives == null) {
                 sender.invalidArgument(args[1]);
                 return;
@@ -176,7 +176,7 @@ public class LivesCmd extends AnnoyingCommand {
             sender.invalidArgument(args[2]);
             return;
         }
-        final Integer newLives = action.process(new ModificationData(plugin, sender.getPlayer(), target, lives));
+        final Integer newLives = action.function.apply(new ModificationData(plugin, sender.getPlayer(), target, lives));
         if (newLives == null) {
             sender.invalidArgument(args[1]);
             return;
@@ -262,11 +262,6 @@ public class LivesCmd extends AnnoyingCommand {
         @Override @NotNull
         public String toString() {
             return name().toLowerCase();
-        }
-
-        @Nullable
-        public Integer process(@NotNull ModificationData data) {
-            return function.apply(data);
         }
     }
 }

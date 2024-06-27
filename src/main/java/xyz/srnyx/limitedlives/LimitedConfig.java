@@ -12,7 +12,10 @@ import xyz.srnyx.annoyingapi.AnnoyingPlugin;
 import xyz.srnyx.annoyingapi.data.ItemData;
 import xyz.srnyx.annoyingapi.file.AnnoyingResource;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -38,7 +41,7 @@ public class LimitedConfig {
     }
 
     @NotNull
-    private static Set<String> getDamageCauses(@NotNull Collection<String> collection) {
+    private static Set<String> getDamageCauses(@NotNull List<String> collection) {
         return collection.stream()
                 .map(String::toUpperCase)
                 .collect(Collectors.toSet());

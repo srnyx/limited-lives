@@ -24,16 +24,16 @@ public class WorldGuardManager {
     public WorldGuardManager() {
         try {
             flag = new StateFlag("limited-lives", true);
-            WorldGuard.getInstance().getFlagRegistry().register(flag);
+            final WorldGuard inst = WorldGuard.getInstance();
+            inst.getFlagRegistry().register(flag);
             instance = WorldGuardPlugin.inst();
-            regionContainer = WorldGuard.getInstance().getPlatform().getRegionContainer();
+            regionContainer = inst.getPlatform().getRegionContainer();
         } catch (final RuntimeException e) {
             AnnoyingPlugin.log(Level.WARNING, "&cFailed to register WorldGuard flag!");
         }
     }
 
     public boolean test(@NotNull Player player) {
-        if (flag == null || instance == null || regionContainer == null) return true;
-        return regionContainer.createQuery().testState(BukkitAdapter.adapt(player.getLocation()), instance.wrapPlayer(player), flag);
+        return flag != null && instance != null && regionContainer != null && regionContainer.createQuery().testState(BukkitAdapter.adapt(player.getLocation()), instance.wrapPlayer(player), flag);
     }
 }
