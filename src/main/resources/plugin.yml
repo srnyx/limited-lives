@@ -23,8 +23,11 @@ commands:
     permission: limitedlives.reload
 
 permissions:
+  # Commands
   limitedlives.reload:
     description: Allows the player to use /lifereload
+  limitedlives.convert:
+    description: Allows the player to use /lives convert
   limitedlives.get.self:
     description: Allows the player to use /lives get on themselves
   limitedlives.get.other:
@@ -47,6 +50,7 @@ permissions:
     description: Allows the player to use /lives withdraw on others
   limitedlives.give:
     description: Allows the player to use /lives give
+  # Other
   limitedlives.max.#:
     description: Gives the player their own specific max lives
     default: false

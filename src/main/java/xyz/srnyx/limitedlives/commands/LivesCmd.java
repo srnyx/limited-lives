@@ -1,5 +1,9 @@
 package xyz.srnyx.limitedlives.commands;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -7,22 +11,32 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import xyz.srnyx.annoyingapi.AnnoyingPlugin;
 import xyz.srnyx.annoyingapi.command.AnnoyingCommand;
 import xyz.srnyx.annoyingapi.command.AnnoyingSender;
+import xyz.srnyx.annoyingapi.data.EntityData;
+import xyz.srnyx.annoyingapi.data.StringData;
+import xyz.srnyx.annoyingapi.libs.javautilities.FileUtility;
 import xyz.srnyx.annoyingapi.message.AnnoyingMessage;
 import xyz.srnyx.annoyingapi.utility.BukkitUtility;
 
 import xyz.srnyx.limitedlives.LimitedLives;
 import xyz.srnyx.limitedlives.PlayerManager;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.logging.Level;
 
 
 public class LivesCmd extends AnnoyingCommand {
+    @NotNull private static final Gson GSON = new Gson();
+
     @NotNull private final LimitedLives plugin;
 
     public LivesCmd(@NotNull LimitedLives plugin) {
@@ -54,6 +68,65 @@ public class LivesCmd extends AnnoyingCommand {
         // Check args length
         if (args.length < 2) {
             sender.invalidArguments();
+            return;
+        }
+
+        // convert hardcorelivesplugin
+        if (sender.argEquals(0, "convert")) {
+            if (!sender.checkPermission("limitedlives.convert")) return;
+            if (!sender.argEquals(1, "hardcorelivesplugin")) {
+                sender.invalidArgumentByIndex(1);
+                return;
+            }
+
+            // File: plugins/Hardcorelivesplugin/players/UUID.json
+            // Structure: {"uuid":"e907083e-5db6-41fc-9e32-5c4d99a08712","username":"srnyx","lives":3,"bypassLives":false,"maxLives":5}
+            // Converting: "uuid" and "lives"
+            int succeeded = 0;
+            int failed = 0;
+            final File playersFolder = new File(plugin.getDataFolder().getParentFile(), "Hardcorelivesplugin/players");
+            for (final String uuidString : FileUtility.getFileNames(playersFolder, "json")) {
+                // Parse file as JSON
+                final JsonObject json;
+                try {
+                    json = GSON.fromJson(new FileReader(new File(playersFolder, uuidString + ".json")), JsonObject.class);
+                } catch (final FileNotFoundException e) {
+                    AnnoyingPlugin.log(Level.WARNING, "Failed to convert Hardcore Lives Plugin data for " + uuidString + ", file not found", e);
+                    failed++;
+                    continue;
+                }
+
+                // Get lives
+                final JsonElement livesElement = json.get("lives");
+                if (livesElement == null) {
+                    AnnoyingPlugin.log(Level.WARNING, "Failed to convert Hardcore Lives Plugin data for " + uuidString + ", lives not found");
+                    failed++;
+                    continue;
+                }
+                final int lives;
+                try {
+                    lives = livesElement.getAsInt();
+                } catch (final ClassCastException e) {
+                    AnnoyingPlugin.log(Level.WARNING, "Failed to convert Hardcore Lives Plugin data for " + uuidString + ", lives not an integer", e);
+                    failed++;
+                    continue;
+                }
+
+                // Save lives to Limited Lives
+                if (!new StringData(plugin, EntityData.TABLE_NAME, uuidString).set(PlayerManager.LIVES_KEY, lives)) {
+                    AnnoyingPlugin.log(Level.WARNING, "Failed to convert Hardcore Lives Plugin data for " + uuidString + ", failed to save");
+                    failed++;
+                    continue;
+                }
+
+                AnnoyingPlugin.log(Level.INFO, "Converted Hardcore Lives Plugin data for " + uuidString + " with " + lives + " lives");
+                succeeded++;
+            }
+
+            new AnnoyingMessage(plugin, "convert.hardcorelivesplugin")
+                    .replace("%succeeded%", succeeded)
+                    .replace("%failed%", failed)
+                    .send(sender);
             return;
         }
 
@@ -188,7 +261,7 @@ public class LivesCmd extends AnnoyingCommand {
                 .send(sender);
     }
 
-    @NotNull private static final List<String> NO_ARGS = Arrays.asList("get", "set", "add", "remove", "give", "withdraw");
+    @NotNull private static final List<String> NO_ARGS = Arrays.asList("get", "set", "add", "remove", "give", "withdraw", "convert");
 
     @Override @Nullable
     public Collection<String> onTabComplete(@NotNull AnnoyingSender sender) {
@@ -200,10 +273,16 @@ public class LivesCmd extends AnnoyingCommand {
         final CommandSender cmdSender = sender.cmdSender;
 
         if (length == 2) {
+            // convert
+            if (sender.argEquals(0, "convert")) {
+                if (cmdSender.hasPermission("limitedlives.convert")) return Collections.singleton("hardcorelivesplugin");
+                return null;
+            }
             // get
             if (sender.argEquals(0, "get")) {
                 if (cmdSender.hasPermission("limitedlives.get.self")) return Collections.singleton(cmdSender.getName());
                 if (cmdSender.hasPermission("limitedlives.get.other")) return BukkitUtility.getOnlinePlayerNames();
+                return null;
             }
             // <action>
             return Collections.singleton("[<lives>]");
