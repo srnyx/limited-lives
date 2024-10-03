@@ -8,6 +8,8 @@ import org.jetbrains.annotations.Nullable;
 import xyz.srnyx.annoyingapi.AnnoyingPlugin;
 import xyz.srnyx.annoyingapi.PluginPlatform;
 
+import xyz.srnyx.limitedlives.listeners.PlayerListener;
+
 import java.io.File;
 import java.util.logging.Level;
 
@@ -30,7 +32,7 @@ public class LimitedLives extends AnnoyingPlugin {
                                 PlayerManager.DEAD_KEY,
                                 PlayerManager.FIRST_JOIN_KEY))
                 .registrationOptions
-                .toRegister(this, PlayerListener.class)
+                .toRegister(new PlayerListener(this))
                 .papiExpansionToRegister(() -> new LimitedPlaceholders(this))
                 .automaticRegistration.packages("xyz.srnyx.limitedlives.commands");
     }

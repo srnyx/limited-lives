@@ -12,10 +12,7 @@ import xyz.srnyx.annoyingapi.AnnoyingPlugin;
 import xyz.srnyx.annoyingapi.data.ItemData;
 import xyz.srnyx.annoyingapi.file.AnnoyingResource;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -73,8 +70,7 @@ public class LimitedConfig {
 
             public Actions() {
                 // def
-                final KeepInventoryAction defAction = KeepInventoryAction.fromString(config.getString("keep-inventory.actions.default"));
-                def = defAction != null ? defAction : KeepInventoryAction.KEEP;
+                def = KeepInventoryAction.fromString(config.getString("keep-inventory.actions.default")).orElse(KeepInventoryAction.KEEP);
 
                 // actions
                 final ConfigurationSection section = config.getConfigurationSection("keep-inventory.actions");
@@ -87,8 +83,8 @@ public class LimitedConfig {
                         AnnoyingPlugin.log(Level.WARNING, "Invalid keep inventory action count: " + key);
                         continue;
                     }
-                    final KeepInventoryAction action = KeepInventoryAction.fromString(config.getString("keep-inventory.actions." + key));
-                    if (action != null) exact.put(count, action);
+                    KeepInventoryAction.fromString(config.getString("keep-inventory.actions." + key))
+                            .ifPresent(keepInventoryAction -> exact.put(count, keepInventoryAction));
                 }
             }
 
@@ -122,7 +118,7 @@ public class LimitedConfig {
 
         public class Crafting {
             public final int amount = config.getInt("obtaining.crafting.amount", 1);
-            @Nullable public final Recipe recipe = config.getBoolean("obtaining.crafting.enabled", true) ? config.getRecipe("obtaining.crafting.recipe", item -> new ItemData(config.plugin, item).setChain(PlayerManager.ITEM_KEY, true).target, null, "life") : null;
+            @Nullable public final Recipe recipe = config.getBoolean("obtaining.crafting.enabled", true) ? config.getRecipe("obtaining.crafting.recipe", item -> new ItemData(config.plugin, item).setChain(PlayerManager.ITEM_KEY, true).target, "life").orElse(null) : null;
         }
     }
 
@@ -143,14 +139,14 @@ public class LimitedConfig {
             this.consumer = consumer;
         }
 
-        @Nullable
-        public static KeepInventoryAction fromString(@Nullable String string) {
+        @NotNull
+        public static Optional<KeepInventoryAction> fromString(@Nullable String string) {
             if (string != null) try {
-                return valueOf(string.toUpperCase());
+                return Optional.of(valueOf(string.toUpperCase()));
             } catch (final IllegalArgumentException e) {
                 AnnoyingPlugin.log(Level.WARNING, "Invalid keep inventory action: " + string);
             }
-            return null;
+            return Optional.empty();
         }
     }
 }

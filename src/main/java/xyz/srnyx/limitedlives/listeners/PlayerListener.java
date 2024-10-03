@@ -1,4 +1,4 @@
-package xyz.srnyx.limitedlives;
+package xyz.srnyx.limitedlives.listeners;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -14,11 +14,18 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 import xyz.srnyx.annoyingapi.AnnoyingListener;
+import xyz.srnyx.annoyingapi.AnnoyingPlugin;
 import xyz.srnyx.annoyingapi.data.EntityData;
 import xyz.srnyx.annoyingapi.data.ItemData;
 import xyz.srnyx.annoyingapi.message.AnnoyingMessage;
 
+import xyz.srnyx.limitedlives.LimitedLives;
+import xyz.srnyx.limitedlives.PlayerManager;
+
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.logging.Level;
 
 
 public class PlayerListener extends AnnoyingListener {
@@ -61,7 +68,7 @@ public class PlayerListener extends AnnoyingListener {
         }
 
         // Remove life
-        final Integer newLives = manager.removeLives(1, killer);
+        final Integer newLives = manager.removeLives(1, killer).orElse(null);
         if (newLives == null || newLives == plugin.config.lives.min) {
             // No more lives
             new AnnoyingMessage(plugin, "lives.zero").send(player);
@@ -83,11 +90,12 @@ public class PlayerListener extends AnnoyingListener {
 
         // Give life to killer
         if (!plugin.config.obtaining.stealing || !isPvp) return;
-        final Integer newKillerLives = new PlayerManager(plugin, killer).addLives(1);
-        if (newKillerLives != null) new AnnoyingMessage(plugin, "lives.steal")
-                .replace("%target%", player.getName())
-                .replace("%lives%", newKillerLives)
-                .send(killer);
+        new PlayerManager(plugin, killer)
+                .addLives(1)
+                .ifPresent(newKillerLives -> new AnnoyingMessage(plugin, "lives.steal")
+                        .replace("%target%", player.getName())
+                        .replace("%lives%", newKillerLives)
+                        .send(killer));
     }
 
     @EventHandler
@@ -115,8 +123,8 @@ public class PlayerListener extends AnnoyingListener {
     public void onPlayerItemConsume(@NotNull PlayerItemConsumeEvent event) {
         if (plugin.config.obtaining.crafting.recipe == null || !new ItemData(plugin, event.getItem()).has(PlayerManager.ITEM_KEY)) return;
         final Player player = event.getPlayer();
-        final Integer newLives = new PlayerManager(plugin, player).addLives(plugin.config.obtaining.crafting.amount);
-        if (newLives == null) {
+        final Optional<Integer> newLives = new PlayerManager(plugin, player).addLives(plugin.config.obtaining.crafting.amount);
+        if (!newLives.isPresent()) {
             event.setCancelled(true);
             new AnnoyingMessage(plugin, "eat.max")
                     .replace("%max%", plugin.config.lives.max)
@@ -124,15 +132,21 @@ public class PlayerListener extends AnnoyingListener {
             return;
         }
         new AnnoyingMessage(plugin, "eat.success")
-                .replace("%lives%", newLives)
+                .replace("%lives%", newLives.get())
                 .send(player);
     }
 
     @EventHandler
     public void onPlayerJoin(@NotNull PlayerJoinEvent event) {
-        final EntityData data = new EntityData(plugin, event.getPlayer());
+        final Player player = event.getPlayer();
+        final EntityData data = new EntityData(plugin, player);
         // Convert old data
-        data.convertOldData(true, PlayerManager.LIVES_KEY, PlayerManager.DEAD_KEY);
+        final Map<String, String> failed = data.convertOldData(true, PlayerManager.LIVES_KEY, PlayerManager.DEAD_KEY);
+        if (failed == null) {
+            AnnoyingPlugin.log(Level.SEVERE, "Failed to convert old data for player " + player.getName());
+        } else if (!failed.isEmpty()) {
+            AnnoyingPlugin.log(Level.WARNING, "Failed to convert some old data for player " + player.getName() + ": " + failed);
+        }
         // Set FIRST_JOIN_KEY
         if (plugin.config.gracePeriod.enabled && !data.has(PlayerManager.FIRST_JOIN_KEY)) data.set(PlayerManager.FIRST_JOIN_KEY, System.currentTimeMillis());
     }

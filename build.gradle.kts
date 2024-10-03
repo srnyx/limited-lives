@@ -10,7 +10,7 @@ plugins {
     id("com.gradleup.shadow") version "8.3.3"
 }
 
-setupAnnoyingAPI("44b9fff69a", "xyz.srnyx", "3.0.1", "Each player has a limited number of lives. If you die, you are punished")
+setupAnnoyingAPI("5.1.0", "xyz.srnyx", "3.0.1", "Each player has a limited number of lives. If you die, you are punished")
 spigotAPI("1.8.8")
 
 repository(Repository.PLACEHOLDER_API, Repository.ENGINE_HUB)
