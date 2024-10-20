@@ -117,7 +117,8 @@ public class LivesCmd extends AnnoyingCommand {
                 succeeded++;
             }
 
-            new AnnoyingMessage(plugin, "convert.hardcorelivesplugin")
+            new AnnoyingMessage(plugin, "convert")
+                    .replace("%source%", "HardcoreLivesPlugin")
                     .replace("%succeeded%", succeeded)
                     .replace("%failed%", failed)
                     .send(sender);

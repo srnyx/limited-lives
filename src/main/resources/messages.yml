@@ -76,5 +76,4 @@ withdraw:
   self: "%prefix%Withdrew %s%%amount%%p% lives@@%p%%command%@@%command%" # %amount%
   other: "%prefix%Withdrew %s%%amount%%p% lives from %s%%target%%p%@@%p%%command%@@%command%" # %target%, %amount%
 
-convert: # %succeeded%, %fail%
-  hardcorelivesplugin: "%prefix%%s%%succeeded%%p% players were successfully converted from HardcoreLivesPlugin to Limited Lives (%s%%failed%%p% failed)@@%p%%command%@@%command%"
+convert: "%prefix%%s%%succeeded%%p% players were successfully converted from %s%%source%%p% to %s%Limited Lives%p% (%s%%failed%%p% failed)@@%p%%command%@@%command%" # %source%, %succeeded%, %fail%
