@@ -17,6 +17,8 @@ import xyz.srnyx.annoyingapi.command.AnnoyingSender;
 import xyz.srnyx.annoyingapi.data.EntityData;
 import xyz.srnyx.annoyingapi.data.StringData;
 import xyz.srnyx.annoyingapi.libs.javautilities.FileUtility;
+import xyz.srnyx.annoyingapi.libs.javautilities.MiscUtility;
+import xyz.srnyx.annoyingapi.libs.javautilities.manipulation.Mapper;
 import xyz.srnyx.annoyingapi.message.AnnoyingMessage;
 import xyz.srnyx.annoyingapi.utility.BukkitUtility;
 
@@ -47,10 +49,10 @@ public class LivesCmd extends AnnoyingCommand {
 
     @Override
     public void onCommand(@NotNull AnnoyingSender sender) {
-        final String[] args = sender.args;
+        final int length = sender.args.length;
 
         // No arguments, get
-        if (args.length == 0 || (args.length == 1 && sender.argEquals(0, "get"))) {
+        if (length == 0 || (length == 1 && sender.argEquals(0, "get"))) {
             if (sender.checkPlayer() && sender.checkPermission("limitedlives.get.self")) new AnnoyingMessage(plugin, "get.self")
                     .replace("%lives%", new PlayerManager(plugin, sender.getPlayer()).getLives())
                     .send(sender);
@@ -58,7 +60,7 @@ public class LivesCmd extends AnnoyingCommand {
         }
 
         // Check args length
-        if (args.length < 2) {
+        if (length < 2) {
             sender.invalidArguments();
             return;
         }
@@ -125,11 +127,8 @@ public class LivesCmd extends AnnoyingCommand {
         // get <player>
         if (sender.argEquals(0, "get")) {
             if (!sender.checkPermission("limitedlives.get.other")) return;
-            final OfflinePlayer player = BukkitUtility.getOfflinePlayer(args[1]).orElse(null);
-            if (player == null) {
-                sender.invalidArgument(args[1]);
-                return;
-            }
+            final OfflinePlayer player = sender.getArgument(1, arg -> BukkitUtility.getOfflinePlayer(arg).orElse(null));
+            if (player == null) return;
             new AnnoyingMessage(plugin, "get.other")
                     .replace("%target%", player.getName())
                     .replace("%lives%", new PlayerManager(plugin, player).getLives())
@@ -138,18 +137,13 @@ public class LivesCmd extends AnnoyingCommand {
         }
 
         // Get lives
-        int lives;
-        try {
-            lives = Integer.parseInt(args[1]);
-        } catch (final NumberFormatException e) {
-            sender.invalidArgument(args[1]);
-            return;
-        }
+        Integer lives = sender.getArgument(1, arg -> Mapper.toInt(arg).orElse(null));
+        if (lives == null) return;
 
         // give <lives> <player>
         if (sender.argEquals(0, "give")) {
             // Check argument count
-            if (args.length < 3) {
+            if (length < 3) {
                 sender.invalidArguments();
                 return;
             }
@@ -158,11 +152,8 @@ public class LivesCmd extends AnnoyingCommand {
             if (!sender.checkPlayer() || !sender.checkPermission("limitedlives.give")) return;
 
             // Get target and player
-            final OfflinePlayer target = BukkitUtility.getOfflinePlayer(args[2]).orElse(null);
-            if (target == null) {
-                sender.invalidArgument(args[2]);
-                return;
-            }
+            final OfflinePlayer target = sender.getArgument(2, arg -> BukkitUtility.getOfflinePlayer(arg).orElse(null));
+            if (target == null) return;
             final Player player = sender.getPlayer();
             final PlayerManager playerManager = new PlayerManager(plugin, player);
             final PlayerManager targetManager = new PlayerManager(plugin, target);
@@ -185,7 +176,7 @@ public class LivesCmd extends AnnoyingCommand {
             final Integer newPlayerLives = playerManager.removeLives(lives, null).orElse(null);
             final Integer newTargetLives = targetManager.addLives(lives).orElse(null);
             if (newPlayerLives == null || newTargetLives == null) {
-                sender.invalidArgument(args[1]);
+                sender.invalidArgumentByIndex(1);
                 return;
             }
 
@@ -210,20 +201,15 @@ public class LivesCmd extends AnnoyingCommand {
         }
 
         // Get action
-        final ModificationAction action;
-        try {
-            action = ModificationAction.valueOf(args[0].toUpperCase());
-        } catch (final IllegalArgumentException e) {
-            sender.invalidArgument(args[0]);
-            return;
-        }
+        final ModificationAction action = sender.getArgument(0, arg -> MiscUtility.handleException(() -> ModificationAction.valueOf(arg.toUpperCase()), IllegalArgumentException.class).orElse(null));
+        if (action == null) return;
 
         // <action> <lives>
-        if (args.length == 2) {
+        if (length == 2) {
             if (!sender.checkPlayer() || !sender.checkPermission("limitedlives." + action + ".self")) return;
             final Optional<Integer> newLives = action.function.apply(new ModificationData(plugin, sender.getPlayer(), lives));
             if (!newLives.isPresent()) {
-                sender.invalidArgument(args[1]);
+                sender.invalidArgumentByIndex(1);
                 return;
             }
             new AnnoyingMessage(plugin, action + ".self")
@@ -235,14 +221,11 @@ public class LivesCmd extends AnnoyingCommand {
 
         // <action> <lives> <player>
         if ((action.playerOnly && !sender.checkPlayer()) || !sender.checkPermission("limitedlives." + action + ".other")) return;
-        final OfflinePlayer target = BukkitUtility.getOfflinePlayer(args[2]).orElse(null);
-        if (target == null) {
-            sender.invalidArgument(args[2]);
-            return;
-        }
+        final OfflinePlayer target = sender.getArgument(2, arg -> BukkitUtility.getOfflinePlayer(arg).orElse(null));
+        if (target == null) return;
         final Optional<Integer> newLives = action.function.apply(new ModificationData(plugin, sender.getPlayerOrNull(), target, lives));
         if (!newLives.isPresent()) {
-            sender.invalidArgument(args[1]);
+            sender.invalidArgumentByIndex(1);
             return;
         }
         new AnnoyingMessage(plugin, action + ".other")
