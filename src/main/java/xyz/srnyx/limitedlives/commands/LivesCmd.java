@@ -128,7 +128,7 @@ public class LivesCmd extends AnnoyingCommand {
         // get <player>
         if (sender.argEquals(0, "get")) {
             if (!sender.checkPermission("limitedlives.get.other")) return;
-            final OfflinePlayer player = sender.getArgument(1, arg -> BukkitUtility.getOfflinePlayer(arg).orElse(null));
+            final OfflinePlayer player = sender.getArgumentOptionalFlat(1, BukkitUtility::getOfflinePlayer).orElse(null);
             if (player == null) return;
             new AnnoyingMessage(plugin, "get.other")
                     .replace("%target%", player.getName())
@@ -138,7 +138,7 @@ public class LivesCmd extends AnnoyingCommand {
         }
 
         // Get lives
-        Integer lives = sender.getArgument(1, arg -> Mapper.toInt(arg).orElse(null));
+        Integer lives = sender.getArgumentOptionalFlat(1, Mapper::toInt).orElse(null);
         if (lives == null) return;
 
         // give <lives> <player>
@@ -153,7 +153,7 @@ public class LivesCmd extends AnnoyingCommand {
             if (!sender.checkPlayer() || !sender.checkPermission("limitedlives.give")) return;
 
             // Get target and player
-            final OfflinePlayer target = sender.getArgument(2, arg -> BukkitUtility.getOfflinePlayer(arg).orElse(null));
+            final OfflinePlayer target = sender.getArgumentOptionalFlat(2, BukkitUtility::getOfflinePlayer).orElse(null);
             if (target == null) return;
             final Player player = sender.getPlayer();
             final PlayerManager playerManager = new PlayerManager(plugin, player);
