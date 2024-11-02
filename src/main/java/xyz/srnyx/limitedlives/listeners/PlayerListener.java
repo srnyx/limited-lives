@@ -27,7 +27,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Level;
 
-
 public class PlayerListener extends AnnoyingListener {
     @NotNull private final LimitedLives plugin;
 
@@ -42,8 +41,14 @@ public class PlayerListener extends AnnoyingListener {
 
     @EventHandler
     public void onPlayerDeath(@NotNull PlayerDeathEvent event) {
-        // Get killer
         final Player player = event.getEntity();
+        
+        // Check if the world is ignored
+        if (plugin.config.isWorldIgnored(player.getWorld().getName())) {
+            return;
+        }
+
+        // Get killer
         final Player killer = player.getKiller();
         final boolean isPvp = killer != null && killer != player;
 

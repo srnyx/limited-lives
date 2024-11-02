@@ -17,7 +17,6 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-
 public class LimitedConfig {
     @NotNull private final AnnoyingResource config;
     @NotNull public final Lives lives;
@@ -26,6 +25,7 @@ public class LimitedConfig {
     @NotNull public final GracePeriod gracePeriod;
     @NotNull public final Commands commands;
     @NotNull public final Obtaining obtaining;
+    @NotNull public final Set<String> ignoredWorlds;
 
     public LimitedConfig(@NotNull LimitedLives plugin) {
         config = new AnnoyingResource(plugin, "config.yml");
@@ -35,6 +35,7 @@ public class LimitedConfig {
         gracePeriod = new GracePeriod();
         commands = new Commands();
         obtaining = new Obtaining();
+        ignoredWorlds = new HashSet<>(config.getStringList("ignored-worlds"));
     }
 
     @NotNull
@@ -42,6 +43,10 @@ public class LimitedConfig {
         return collection.stream()
                 .map(String::toUpperCase)
                 .collect(Collectors.toSet());
+    }
+
+    public boolean isWorldIgnored(@NotNull String worldName) {
+        return ignoredWorlds.contains(worldName.toLowerCase());
     }
 
     public class Lives {
