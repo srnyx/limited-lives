@@ -18,6 +18,7 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+
 public class LimitedConfig {
     @NotNull private final AnnoyingResource config;
     @NotNull public final Lives lives;

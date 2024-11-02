@@ -1,5 +1,6 @@
 DOCUMENTATION: https://annoying-api.srnyx.com/wiki/File-objects
 
+
 lives:
   # The amount of lives a player starts with
   default: 5
