@@ -25,7 +25,7 @@ public class LimitedConfig {
     @NotNull public final GracePeriod gracePeriod;
     @NotNull public final Commands commands;
     @NotNull public final Obtaining obtaining;
-    @NotNull public final Set<String> ignoredWorlds;
+    @NotNull public final WorldList worldList;
 
     public LimitedConfig(@NotNull LimitedLives plugin) {
         config = new AnnoyingResource(plugin, "config.yml");
@@ -35,7 +35,7 @@ public class LimitedConfig {
         gracePeriod = new GracePeriod();
         commands = new Commands();
         obtaining = new Obtaining();
-        ignoredWorlds = new HashSet<>(config.getStringList("ignored-worlds"));
+        worldList = new WorldList();
     }
 
     @NotNull
@@ -43,10 +43,6 @@ public class LimitedConfig {
         return collection.stream()
                 .map(String::toUpperCase)
                 .collect(Collectors.toSet());
-    }
-
-    public boolean isWorldIgnored(@NotNull String worldName) {
-        return ignoredWorlds.contains(worldName.toLowerCase());
     }
 
     public class Lives {
@@ -124,6 +120,21 @@ public class LimitedConfig {
         public class Crafting {
             public final int amount = config.getInt("obtaining.crafting.amount", 1);
             @Nullable public final Recipe recipe = config.getBoolean("obtaining.crafting.enabled", true) ? config.getRecipe("obtaining.crafting.recipe", item -> new ItemData(config.plugin, item).setChain(PlayerManager.ITEM_KEY, true).target, "life").orElse(null) : null;
+        }
+    }
+
+    public class WorldList {
+        @NotNull public final String mode;
+        @NotNull public final Set<String> worlds;
+
+        public WorldList() {
+            mode = config.getString("world-list.mode", "blacklist").toLowerCase();
+            worlds = new HashSet<>(config.getStringList("world-list.worlds"));
+        }
+
+        public boolean isWorldAffected(@NotNull String worldName) {
+            boolean inList = worlds.contains(worldName.toLowerCase());
+            return mode.equals("whitelist") ? inList : !inList;
         }
     }
 

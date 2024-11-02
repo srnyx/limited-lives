@@ -43,8 +43,8 @@ public class PlayerListener extends AnnoyingListener {
     public void onPlayerDeath(@NotNull PlayerDeathEvent event) {
         final Player player = event.getEntity();
         
-        // Check if the world is ignored
-        if (plugin.config.isWorldIgnored(player.getWorld().getName())) {
+        // Check if the world is affected by the plugin
+        if (!plugin.config.worldList.isWorldAffected(player.getWorld().getName())) {
             return;
         }
 

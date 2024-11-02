@@ -1,9 +1,11 @@
 DOCUMENTATION: https://annoying-api.srnyx.com/wiki/File-objects
 
-# Worlds where the plugin will not function
-ignored-worlds:
-  - world_nether
-  - creative_world
+# World modifications
+world-list:
+  mode: blacklist  # Can be 'blacklist' or 'whitelist'
+  worlds:
+    - world_nether
+    - creative_world
 
 lives:
   # The amount of lives a player starts with
