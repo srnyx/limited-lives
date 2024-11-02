@@ -1,6 +1,7 @@
 package xyz.srnyx.limitedlives;
 
 import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.Recipe;
@@ -26,6 +27,7 @@ public class LimitedConfig {
     @NotNull public final GracePeriod gracePeriod;
     @NotNull public final Commands commands;
     @NotNull public final Obtaining obtaining;
+    @NotNull public final WorldsBlacklist worldsBlacklist;
 
     public LimitedConfig(@NotNull LimitedLives plugin) {
         config = new AnnoyingResource(plugin, "config.yml");
@@ -35,6 +37,7 @@ public class LimitedConfig {
         gracePeriod = new GracePeriod();
         commands = new Commands();
         obtaining = new Obtaining();
+        worldsBlacklist = new WorldsBlacklist();
     }
 
     @NotNull
@@ -119,6 +122,17 @@ public class LimitedConfig {
         public class Crafting {
             public final int amount = config.getInt("obtaining.crafting.amount", 1);
             @Nullable public final Recipe recipe = config.getBoolean("obtaining.crafting.enabled", true) ? config.getRecipe("obtaining.crafting.recipe", item -> new ItemData(config.plugin, item).setChain(PlayerManager.ITEM_KEY, true).target, "life").orElse(null) : null;
+        }
+    }
+
+    public class WorldsBlacklist {
+        @NotNull public final Set<String> list = config.getStringList("worlds-blacklist.list").stream()
+                .map(String::toLowerCase)
+                .collect(Collectors.toSet());
+        public final boolean actAsWhitelist = config.getBoolean("worlds-blacklist.act-as-whitelist", false);
+
+        public boolean isWorldEnabled(@NotNull World world) {
+            return actAsWhitelist == list.contains(world.getName().toLowerCase());
         }
     }
 

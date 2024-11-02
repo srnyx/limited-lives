@@ -15,6 +15,15 @@ lives:
 # - PLAYER_ATTACK: Damage caused when a player attacks another player (PVP)
 death-causes: []
 
+# A list of worlds where the plugin won't be enabled
+worlds-blacklist:
+  list:
+    - "world_1"
+    - "world_2"
+
+  # If true, the list of worlds above will act as a whitelist, meaning only those worlds will have the plugin enabled
+  act-as-whitelist: false
+
 # THE keepInventory GAMERULE MUST BE SET TO false FOR THIS TO WORK (the plugin will disable it if it's enabled)!
 # If it isn't, some players' inventories may be permanently lost!
 keep-inventory:

@@ -42,8 +42,12 @@ public class PlayerListener extends AnnoyingListener {
 
     @EventHandler
     public void onPlayerDeath(@NotNull PlayerDeathEvent event) {
-        // Get killer
         final Player player = event.getEntity();
+        
+        // Check if plugin enabled in world
+        if (!plugin.config.worldsBlacklist.isWorldEnabled(player.getWorld())) return;
+
+        // Get killer
         final Player killer = player.getKiller();
         final boolean isPvp = killer != null && killer != player;
 
