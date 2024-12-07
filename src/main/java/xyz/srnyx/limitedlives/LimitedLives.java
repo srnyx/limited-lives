@@ -16,7 +16,7 @@ import java.util.logging.Level;
 
 public class LimitedLives extends AnnoyingPlugin {
     @NotNull public LimitedConfig config = new LimitedConfig(this);
-    @Nullable public WorldGuardManager worldGuard = null;
+    @Nullable public WorldGuardManager worldGuard;
 
     public LimitedLives() {
         options
@@ -47,8 +47,12 @@ public class LimitedLives extends AnnoyingPlugin {
         // Load config
         config = new LimitedConfig(this);
         // Register WorldGuardManager
-        if (Bukkit.getPluginManager().getPlugin("WorldGuard") != null) worldGuard = new WorldGuardManager();
-        // Detect very old data (data/data.yml)
+        if (Bukkit.getPluginManager().getPlugin("WorldGuard") != null) try {
+            worldGuard = new WorldGuardManager();
+        } catch (final Exception e) {
+            AnnoyingPlugin.log(Level.WARNING, "&cFailed to register WorldGuard flag!", e);
+        }
+        // Detect very old data (data/data.yml, 2.0.1 and lower)
         final File oldDataFile = new File(getDataFolder(), "data/data.yml");
         if (oldDataFile.exists()) log(Level.SEVERE, "&c&lOld data detected!&c To keep your old data, please update to &43.0.1&c FIRST and then to &4" + getDescription().getVersion() + "&c! &oIf this is incorrect, delete &4&o" + oldDataFile.getPath());
     }
