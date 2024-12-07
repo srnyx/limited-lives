@@ -49,31 +49,45 @@ lives:
 
 eat:
   success: "%p%You ate a life, you now have %s%%lives%%p% lives!" # %lives%
+
   max: "%p%You already have the maximum amount of lives (%s%%max%%p%)!" # %max%
 
 get: # %lives%
   self: "%prefix%You have %s%%lives%%p% lives@@%p%%command%@@%command%"
   other: "%prefix%%s%%target%%p% has %s%%lives%%p% lives@@%p%%command%@@%command%" # %target%
 
-set: # %amount%, %lives%
-  self: "%prefix%Set your lives to %s%%lives%@@%p%%command%@@%command%"
-  other: "%prefix%Set %s%%target%%p%'s lives to %s%%lives%@@%p%%command%@@%command%" # %target%
+set: # %amount%
+  self: "%prefix%Set your lives to %s%%lives%@@%p%%command%@@%command%" # %lives%
+  other: "%prefix%Set %s%%target%%p%'s lives to %s%%lives%@@%p%%command%@@%command%" # %lives%, %target%
 
-add: # %amount%, %lives%
-  self: "%prefix%Gave %s%%amount%%p% lives to yourself, you now have %s%%lives%@@%p%%command%@@%command%"
-  other: "%prefix%Gave %s%%amount%%p% lives to %s%%target%%p%, they now have %s%%lives%@@%p%%command%@@%command%" # %target%
+  min: "%prefix%%se%%amount%%pe% is below the minimum amount of lives (%se%%min%%pe%)!@@%pe%%command%@@%command%" # %target%, %min%, %max%
+  max: "%prefix%%se%%amount%%pe% is above the maximum amount of lives (%se%%max%%pe%)!@@%pe%%command%@@%command%" # %target%, %min%, %max%
 
-remove: # %amount%, %lives%
-  self: "%prefix%Removed %s%%amount%%p% lives from yourself, you now have %s%%lives%@@%p%%command%@@%command%"
-  other: "%prefix%Removed %s%%amount%%p% lives from %s%%target%%p%, they now have %s%%lives%@@%p%%command%@@%command%" # %target%
+add: # %amount%
+  self: "%prefix%Gave %s%%amount%%p% lives to yourself, you now have %s%%lives%@@%p%%command%@@%command%" # %lives%
+  other: "%prefix%Gave %s%%amount%%p% lives to %s%%target%%p%, they now have %s%%lives%@@%p%%command%@@%command%" # %lives%, %target%
+
+  max: "%prefix%%pe%Adding %se%%amount%%pe% lives would cause %se%%target%%pe% to exceed the maximum amount of lives (%se%%max%%pe%)!@@%pe%%command%@@%command%" # %target%, %min%, %max%
+
+remove: # %amount%
+  self: "%prefix%Removed %s%%amount%%p% lives from yourself, you now have %s%%lives%@@%p%%command%@@%command%" # %lives%
+  other: "%prefix%Removed %s%%amount%%p% lives from %s%%target%%p%, they now have %s%%lives%@@%p%%command%@@%command%" # %lives%, %target%
+
+  min: "%prefix%%pe%Removing %se%%amount%%pe% lives would cause %se%%target%%pe% to fall below the minimum amount of lives (%se%%min%%pe%)!@@%pe%%command%@@%command%" # %target%, %min%, %max%
 
 give:
-  last-life: "%prefix%You can't give your last life away!@@%p%%command%@@%command%"
   player: "%prefix%Gave %s%%amount%%p% lives to %s%%target%%p%, you now have %s%%playerlives%%p% lives and they have %s%%targetlives%%p% lives@@%p%%command%@@%command%" # %player%, %target%, %playerlives%, %targetlives%, %amount%
   target: "%prefix%You were given %s%%amount%%p% lives by %s%%player%%p%, you now have %s%%targetlives%%p% lives and they have %s%%playerlives%%p% lives@@%p%%command%@@%command%" # %player%, %target%, %playerlives%, %targetlives%, %amount%
 
+  self: "%prefix%%pe%You can't give lives to yourself!@@%pe%%command%@@%command%"
+  last-life: "%prefix%%peYou can't give away your last life!@@%pe%%command%@@%command%"
+
 withdraw:
   self: "%prefix%Withdrew %s%%amount%%p% lives@@%p%%command%@@%command%" # %amount%
-  other: "%prefix%Withdrew %s%%amount%%p% lives from %s%%target%%p%@@%p%%command%@@%command%" # %target%, %amount%
+  other: "%prefix%Withdrew %s%%amount%%p% lives from %s%%target%%p%@@%p%%command%@@%command%" # %amount%, %target%
+
+  min: "%prefix%%pe%Withdrawing %se%%amount%%pe% would cause %se%%target%%pe% to fall below the minimum amount of lives (%se%%min%%pe%)!@@%pe%%command%@@%command%" # %amount%, %target%, %min%
+  recipe-not-set: "%prefix%%pe%The recipe for withdrawing lives has not been set!@@%pe%%command%@@%command%"
+  negative: "%prefix%%pe%You can't withdraw a negative amount of lives!@@%pe%%command%@@%command%"
 
 convert: "%prefix%%s%%succeeded%%p% players were successfully converted from %s%%source%%p% to %s%Limited Lives%p% (%s%%failed%%p% failed)@@%p%%command%@@%command%" # %source%, %succeeded%, %fail%

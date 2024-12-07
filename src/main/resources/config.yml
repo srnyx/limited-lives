@@ -1,6 +1,7 @@
 DOCUMENTATION: https://annoying-api.srnyx.com/wiki/File-objects
 
 
+
 lives:
   # The amount of lives a player starts with
   default: 5
@@ -9,11 +10,13 @@ lives:
   # The amount of lives that triggers the punishment commands
   min: 0
 
+
 # The causes that will result in a player to losing a life, leave empty for all causes
 # Available causes:
 # - https://srnyx.com/docs/spigot/org/bukkit/event/entity/EntityDamageEvent.DamageCause.html
 # - PLAYER_ATTACK: Damage caused when a player attacks another player (PVP)
 death-causes: []
+
 
 # A list of worlds where the plugin won't be enabled
 worlds-blacklist:
@@ -23,6 +26,7 @@ worlds-blacklist:
 
   # If true, the list of worlds above will act as a whitelist, meaning only those worlds will have the plugin enabled
   act-as-whitelist: false
+
 
 # THE keepInventory GAMERULE MUST BE SET TO false FOR THIS TO WORK (the plugin will disable it if it's enabled)!
 # If it isn't, some players' inventories may be permanently lost!
@@ -35,48 +39,63 @@ keep-inventory:
   # destroy: Destroy all items in the player's inventory
   actions:
     default: keep # The default action if the death isn't specified below
-    1: destroy # EXAMPLE: This would destroy the player's inventory on their 1st death
+    1: drop # EXAMPLE: This would drop the player's inventory on their 1st death
     5: drop # EXAMPLE: This would drop the player's inventory on their 5th death
-    10: drop # EXAMPLE: This would drop the player's inventory on their 10th death
+    10: destroy # EXAMPLE: This would destroy the player's inventory on their 10th death
+
 
 # A period of time after a player joins the server and/or is revived where they won't lose lives
 grace-period:
-  # Whether to enable the grace period
   enabled: false
   # The duration of the grace period in seconds
   duration: 60 # seconds
-  # Death causes that will bypass the grace period, aka the player will lose a life
+
+  # When players should be given the grace period
+  # Available options:
+  # - FIRST_JOIN: When a player joins the server for the first time (since grace-period was first enabled)
+  # - JOIN: When a player joins the server (overrules FIRST_JOIN)
+  # - REVIVE: When a player is revived
+  triggers:
+    - FIRST_JOIN
+    - REVIVE
+
+  # Death causes that will bypass the grace period so the player still loses a life
   # Available causes:
   # - https://srnyx.com/docs/spigot/org/bukkit/event/entity/EntityDamageEvent.DamageCause.html
   # - PLAYER_ATTACK: Damage caused when a player attacks another player (PVP)
   bypass-causes: []
 
+
 commands:
   # The commands that will be executed when a player loses all their lives (executed by the console)
+  # It's best to have the doImmediateRespawn gamerule set to true and then only use death commands
   # %player% - The player that lost all their lives
   # %killer% - The player that got the final kill on %player%. If %player% died from a non-player cause, any commands that use %killer% will be ignored
   punishment:
-    # Executed right when the player dies
+    # Executed right when the player dies and/or when they lose all their lives from a command (ex: /lives remove)
     death: []
     # Executed when the player respawns
     respawn:
       - "gamemode spectator %player%"
   
-  # The commands that will be executed when a player goes from 0 lives to 1+ lives (executed by the console)
+  # The commands that will be executed when a player goes from the minimum lives to above the minimum lives (executed by the console)
   # %player% - The player that gained lives
   revive:
     - "gamemode survival %player%"
+
 
 # Different ways of obtaining lives
 obtaining:
   # Whether to enable killers gaining a life when they kill a player
   stealing: true
+
   crafting:
     # Whether to enable crafting an item that can be CONSUMED to gain lives
     enabled: true
     # The amount of lives that will be gained when the item is consumed
     amount: 1
-    recipe: # RECIPE
+
+    recipe: # RECIPE (see documentation)
       ingredients:
         B: BEACON
         R: REDSTONE

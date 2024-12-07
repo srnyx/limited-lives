@@ -1,4 +1,4 @@
-package xyz.srnyx.limitedlives;
+package xyz.srnyx.limitedlives.managers;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -8,11 +8,14 @@ import org.jetbrains.annotations.Nullable;
 
 import xyz.srnyx.annoyingapi.AnnoyingPAPIExpansion;
 
+import xyz.srnyx.limitedlives.LimitedLives;
+import xyz.srnyx.limitedlives.managers.player.PlayerManager;
 
-public class LimitedPlaceholders extends AnnoyingPAPIExpansion {
+
+public class PlaceholderManager extends AnnoyingPAPIExpansion {
     @NotNull private final LimitedLives plugin;
 
-    public LimitedPlaceholders(@NotNull LimitedLives plugin) {
+    public PlaceholderManager(@NotNull LimitedLives plugin) {
         this.plugin = plugin;
     }
 
@@ -33,10 +36,10 @@ public class LimitedPlaceholders extends AnnoyingPAPIExpansion {
             case "lives": return String.valueOf(new PlayerManager(plugin, player).getLives());
             // max
             case "max": return String.valueOf(new PlayerManager(plugin, player).getMaxLives());
-            // grace
-            case "grace": return String.valueOf(new PlayerManager(plugin, player).hasGrace());
-            // graceremaining
-            case "graceremaining": return String.valueOf(new PlayerManager(plugin, player).getGraceLeft());
+            // grace-active
+            case "grace-active": return String.valueOf(new PlayerManager(plugin, player).hasGrace());
+            // grace-left
+            case "grace-left": return String.valueOf(new PlayerManager(plugin, player).getGraceLeft());
         }
 
         // lives_PLAYER
@@ -49,13 +52,13 @@ public class LimitedPlaceholders extends AnnoyingPAPIExpansion {
             final Player target = Bukkit.getPlayerExact(identifier.substring(4));
             return target == null ? "N/A" : String.valueOf(new PlayerManager(plugin, target).getMaxLives());
         }
-        // grace_PLAYER
-        if (identifier.startsWith("grace_")) {
-            final Player target = Bukkit.getPlayerExact(identifier.substring(6));
+        // grace-active_PLAYER
+        if (identifier.startsWith("grace-active_")) {
+            final Player target = Bukkit.getPlayerExact(identifier.substring(13));
             return target == null ? "N/A" : String.valueOf(new PlayerManager(plugin, target).hasGrace());
         }
-        // graceremaining_PLAYER
-        if (identifier.startsWith("graceremaining_")) {
+        // grace-left_PLAYER
+        if (identifier.startsWith("grace-left_")) {
             final Player target = Bukkit.getPlayerExact(identifier.substring(11));
             return target == null ? "N/A" : String.valueOf(new PlayerManager(plugin, target).getGraceLeft());
         }

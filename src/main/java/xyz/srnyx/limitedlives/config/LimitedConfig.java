@@ -1,9 +1,8 @@
-package xyz.srnyx.limitedlives;
+package xyz.srnyx.limitedlives.config;
 
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.Recipe;
 
 import org.jetbrains.annotations.NotNull;
@@ -13,8 +12,10 @@ import xyz.srnyx.annoyingapi.AnnoyingPlugin;
 import xyz.srnyx.annoyingapi.data.ItemData;
 import xyz.srnyx.annoyingapi.file.AnnoyingResource;
 
+import xyz.srnyx.limitedlives.LimitedLives;
+import xyz.srnyx.limitedlives.managers.player.PlayerManager;
+
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -102,6 +103,10 @@ public class LimitedConfig {
     public class GracePeriod {
         public final boolean enabled = config.getBoolean("grace-period.enabled", false);
         public final int duration = config.getInt("grace-period.duration", 60) * 1000;
+        @NotNull public final Set<GracePeriodTrigger> triggers = config.getStringList("grace-period.triggers").stream()
+                .map(GracePeriodTrigger::fromString)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
         @NotNull public final Set<String> bypassCauses = getDamageCauses(config.getStringList("grace-period.bypass-causes"));
     }
 
@@ -133,34 +138,6 @@ public class LimitedConfig {
 
         public boolean isWorldEnabled(@NotNull World world) {
             return actAsWhitelist == list.contains(world.getName().toLowerCase());
-        }
-    }
-
-    public enum KeepInventoryAction {
-        KEEP(event -> {
-            event.getDrops().clear();
-            event.setKeepInventory(true);
-        }),
-        DROP(event -> event.setKeepInventory(false)),
-        DESTROY(event -> {
-            event.getDrops().clear();
-            event.setKeepInventory(false);
-        });
-
-        @NotNull public final Consumer<PlayerDeathEvent> consumer;
-
-        KeepInventoryAction(@NotNull Consumer<PlayerDeathEvent> consumer) {
-            this.consumer = consumer;
-        }
-
-        @NotNull
-        public static Optional<KeepInventoryAction> fromString(@Nullable String string) {
-            if (string != null) try {
-                return Optional.of(valueOf(string.toUpperCase()));
-            } catch (final IllegalArgumentException e) {
-                AnnoyingPlugin.log(Level.WARNING, "Invalid keep inventory action: " + string);
-            }
-            return Optional.empty();
         }
     }
 }

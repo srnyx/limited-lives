@@ -2,26 +2,29 @@ package xyz.srnyx.limitedlives;
 
 import org.bukkit.Bukkit;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import xyz.srnyx.annoyingapi.AnnoyingPlugin;
 import xyz.srnyx.annoyingapi.PluginPlatform;
 
+import xyz.srnyx.limitedlives.config.LimitedConfig;
 import xyz.srnyx.limitedlives.listeners.PlayerListener;
+import xyz.srnyx.limitedlives.managers.PlaceholderManager;
+import xyz.srnyx.limitedlives.managers.WorldGuardManager;
+import xyz.srnyx.limitedlives.managers.player.PlayerManager;
 
 import java.io.File;
 import java.util.logging.Level;
 
 
 public class LimitedLives extends AnnoyingPlugin {
-    @NotNull public LimitedConfig config = new LimitedConfig(this);
+    public LimitedConfig config;
     @Nullable public WorldGuardManager worldGuard;
 
     public LimitedLives() {
         options
                 .pluginOptions(pluginOptions -> pluginOptions.updatePlatforms(new PluginPlatform.Multi(
-                        PluginPlatform.modrinth("limited-lives"),
+                        PluginPlatform.modrinth("LvTKDASD"),
                         PluginPlatform.hangar(this),
                         PluginPlatform.spigot("109078"))))
                 .bStatsOptions(bStatsOptions -> bStatsOptions.id(18304))
@@ -30,15 +33,16 @@ public class LimitedLives extends AnnoyingPlugin {
                         .entityDataColumns(
                                 PlayerManager.LIVES_KEY,
                                 PlayerManager.DEAD_KEY,
-                                PlayerManager.FIRST_JOIN_KEY))
+                                PlayerManager.GRACE_START_KEY))
                 .registrationOptions
                 .toRegister(new PlayerListener(this))
-                .papiExpansionToRegister(() -> new LimitedPlaceholders(this))
+                .papiExpansionToRegister(() -> new PlaceholderManager(this))
                 .automaticRegistration.packages("xyz.srnyx.limitedlives.commands");
     }
 
     @Override
     public void enable() {
+        reload();
         if (config.obtaining.crafting.recipe != null) Bukkit.addRecipe(config.obtaining.crafting.recipe);
     }
 
