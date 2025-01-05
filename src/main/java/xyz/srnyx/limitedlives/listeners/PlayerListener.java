@@ -2,8 +2,10 @@ package xyz.srnyx.limitedlives.listeners;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
@@ -67,7 +69,7 @@ public class PlayerListener extends AnnoyingListener {
         if (plugin.worldGuard != null && !plugin.worldGuard.test(player)) return;
         // Check grace
         final PlayerManager manager = new PlayerManager(plugin, player);
-        if (plugin.config.gracePeriod.enabled && (cause == null || !plugin.config.gracePeriod.bypassCauses.contains(cause)) && manager.hasGrace()) {
+        if ((cause == null || !plugin.config.gracePeriod.bypassCauses.contains(cause)) && manager.hasGrace()) {
             new AnnoyingMessage(plugin, "lives.grace")
                     .replace("%remaining%", manager.getGraceLeft())
                     .send(player);
@@ -130,6 +132,14 @@ public class PlayerListener extends AnnoyingListener {
                 PlayerManager.dispatchCommands(plugin.config.commands.punishment.respawn, player, finalKiller);
             }
         }.runTaskLater(plugin, 1);
+    }
+
+    @EventHandler
+    public void onEntityDamageByEntity(@NotNull EntityDamageByEntityEvent event) {
+        final Entity entity = event.getEntity();
+        if (!(entity instanceof Player)) return;
+        final String cause = event.getDamager() instanceof Player ? "PLAYER_ATTACK" : event.getCause().name();
+        if (plugin.config.gracePeriod.disabledDamageCauses.contains(cause) && new PlayerManager(plugin, (Player) entity).hasGrace()) event.setCancelled(true);
     }
 
     @EventHandler

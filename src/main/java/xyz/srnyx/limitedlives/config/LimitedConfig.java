@@ -108,6 +108,7 @@ public class LimitedConfig {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
         @NotNull public final Set<String> bypassCauses = getDamageCauses(config.getStringList("grace-period.bypass-causes"));
+        @NotNull public final Set<String> disabledDamageCauses = getDamageCauses(config.getStringList("grace-period.disabled-damage-causes"));
     }
 
     public class Commands {

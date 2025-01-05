@@ -14,7 +14,7 @@ lives:
 # The causes that will result in a player to losing a life, leave empty for all causes
 # Available causes:
 # - https://srnyx.com/docs/spigot/org/bukkit/event/entity/EntityDamageEvent.DamageCause.html
-# - PLAYER_ATTACK: Damage caused when a player attacks another player (PVP)
+# - PLAYER_ATTACK: Death caused by another player (PVP)
 death-causes: []
 
 
@@ -47,6 +47,7 @@ keep-inventory:
 # A period of time after a player joins the server and/or is revived where they won't lose lives
 grace-period:
   enabled: false
+
   # The duration of the grace period in seconds
   duration: 60 # seconds
 
@@ -62,8 +63,14 @@ grace-period:
   # Death causes that will bypass the grace period so the player still loses a life
   # Available causes:
   # - https://srnyx.com/docs/spigot/org/bukkit/event/entity/EntityDamageEvent.DamageCause.html
-  # - PLAYER_ATTACK: Damage caused when a player attacks another player (PVP)
+  # - PLAYER_ATTACK: Death caused by another player (PVP)
   bypass-causes: []
+
+  # Damage causes that will be cancelled while a player is in the grace period
+  # Available causes:
+  # - https://srnyx.com/docs/spigot/org/bukkit/event/entity/EntityDamageEvent.DamageCause.html
+  # - PLAYER_ATTACK: Damage caused when a player attacks another player (PVP)
+  disabled-damage-causes: []
 
 
 commands:
