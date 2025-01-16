@@ -20,6 +20,7 @@ import xyz.srnyx.annoyingapi.AnnoyingPlugin;
 import xyz.srnyx.annoyingapi.data.EntityData;
 import xyz.srnyx.annoyingapi.data.ItemData;
 import xyz.srnyx.annoyingapi.message.AnnoyingMessage;
+import xyz.srnyx.annoyingapi.message.DefaultReplaceType;
 
 import xyz.srnyx.limitedlives.config.GracePeriodTrigger;
 import xyz.srnyx.limitedlives.LimitedLives;
@@ -71,7 +72,7 @@ public class PlayerListener extends AnnoyingListener {
         final PlayerManager manager = new PlayerManager(plugin, player);
         if ((cause == null || !plugin.config.gracePeriod.bypassCauses.contains(cause)) && manager.hasGrace()) {
             new AnnoyingMessage(plugin, "lives.grace")
-                    .replace("%remaining%", manager.getGraceLeft())
+                    .replace("%remaining%", manager.getGraceLeft(), DefaultReplaceType.TIME)
                     .send(player);
             return;
         }
