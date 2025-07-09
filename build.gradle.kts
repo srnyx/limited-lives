@@ -11,7 +11,7 @@ plugins {
 }
 
 spigotAPI("1.8.8")
-setupAnnoyingAPI("2fa992b25a", "xyz.srnyx", "4.0.0", "Each player has a limited number of lives. If you die, you are punished")
+setupAnnoyingAPI("2fa992b25a", "xyz.srnyx", "4.1.0", "Each player has a limited number of lives. If you die, you are punished")
 
 repository(Repository.PLACEHOLDER_API, Repository.ENGINE_HUB)
 dependencies {
