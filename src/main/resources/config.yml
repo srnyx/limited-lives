@@ -53,7 +53,7 @@ grace-period:
 
   # When players should be given the grace period
   # Available options:
-  # - FIRST_JOIN: When a player joins the server for the first time (since grace-period was first enabled)
+  # - FIRST_JOIN: When a player joins the server for the first time
   # - JOIN: When a player joins the server (overrules FIRST_JOIN)
   # - REVIVE: When a player is revived
   triggers:

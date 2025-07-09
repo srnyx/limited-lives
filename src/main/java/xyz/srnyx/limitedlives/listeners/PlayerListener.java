@@ -173,6 +173,6 @@ public class PlayerListener extends AnnoyingListener {
         }
 
         // Start grace period
-        if (plugin.config.gracePeriod.enabled && (plugin.config.gracePeriod.triggers.contains(GracePeriodTrigger.JOIN) || (plugin.config.gracePeriod.triggers.contains(GracePeriodTrigger.FIRST_JOIN) && !data.has(PlayerManager.GRACE_START_KEY)))) data.set(PlayerManager.GRACE_START_KEY, System.currentTimeMillis());
+        if (plugin.config.gracePeriod.enabled && (plugin.config.gracePeriod.triggers.contains(GracePeriodTrigger.JOIN) || (plugin.config.gracePeriod.triggers.contains(GracePeriodTrigger.FIRST_JOIN) && !player.hasPlayedBefore()))) data.set(PlayerManager.GRACE_START_KEY, System.currentTimeMillis());
     }
 }
