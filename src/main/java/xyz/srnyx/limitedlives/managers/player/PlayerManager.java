@@ -127,22 +127,18 @@ public class PlayerManager {
 
     private void revive() {
         data.remove(DEAD_KEY);
-
         // Start grace period
         if (plugin.config.gracePeriod.triggers.contains(GracePeriodTrigger.REVIVE)) data.set(GRACE_START_KEY, System.currentTimeMillis());
-
         // Dispatch revive commands
-        final Player online = offline.getPlayer();
-        if (online != null) dispatchCommands(plugin.config.commands.revive, online, null);
+        dispatchCommands(plugin.config.commands.revive, offline, null);
     }
 
     private void kill(@Nullable Player killer) {
         data.set(DEAD_KEY, killer != null ? killer.getUniqueId().toString() : "null");
-        final Player online = offline.getPlayer();
-        if (online != null) dispatchCommands(plugin.config.commands.punishment.death, online, killer);
+        dispatchCommands(plugin.config.commands.punishment.death, offline, killer);
     }
 
-    public static void dispatchCommands(@NotNull List<String> commands, @NotNull Player player, @Nullable OfflinePlayer killer) {
+    public static void dispatchCommands(@NotNull List<String> commands, @NotNull OfflinePlayer player, @Nullable OfflinePlayer killer) {
         for (String command : commands) {
             if (command.contains("%killer%")) {
                 if (killer == null) continue;
