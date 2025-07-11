@@ -70,11 +70,14 @@ public class PlayerListener extends AnnoyingListener {
         if (plugin.worldGuard != null && !plugin.worldGuard.test(player)) return;
         // Check grace
         final PlayerManager manager = new PlayerManager(plugin, player);
-        if ((cause == null || !plugin.config.gracePeriod.bypassCauses.contains(cause)) && manager.hasGrace()) {
-            new AnnoyingMessage(plugin, "lives.grace")
-                    .replace("%remaining%", manager.getGraceLeft(), DefaultReplaceType.TIME)
-                    .send(player);
-            return;
+        if (cause == null || !plugin.config.gracePeriod.bypassCauses.contains(cause)) {
+            final long graceLeft = manager.getGraceLeft();
+            if (graceLeft > 0) {
+                new AnnoyingMessage(plugin, "lives.grace")
+                        .replace("%remaining%", graceLeft, DefaultReplaceType.TIME)
+                        .send(player);
+                return;
+            }
         }
 
         // Remove life
