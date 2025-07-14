@@ -31,7 +31,27 @@ public class PlaceholderManager extends AnnoyingPAPIExpansion {
 
     @Override @Nullable
     public String onPlaceholderRequest(@Nullable Player player, @NotNull String identifier) {
-        if (player != null) switch (identifier) {
+        // Non-player placeholders
+        switch (identifier) {
+            // default
+            case "default": return String.valueOf(plugin.config.lives.def);
+            // max
+            case "max": return String.valueOf(plugin.config.lives.max);
+            // min
+            case "min": return String.valueOf(plugin.config.lives.min);
+        }
+
+        // Get player
+        if (player == null) {
+            final int underscoreIndex = identifier.indexOf('_');
+            if (underscoreIndex == -1) return null;
+            player = Bukkit.getPlayerExact(identifier.substring(underscoreIndex + 1));
+            if (player == null) return "N/A";
+            identifier = identifier.substring(0, underscoreIndex).toLowerCase(); // Needs to be set after player
+        }
+
+        // Player placeholders
+        switch (identifier) {
             // lives
             case "lives": return String.valueOf(new PlayerManager(plugin, player).getLives());
             // max
@@ -40,39 +60,11 @@ public class PlaceholderManager extends AnnoyingPAPIExpansion {
             case "grace-active": return String.valueOf(new PlayerManager(plugin, player).hasGrace());
             // grace-left
             case "grace-left": return String.valueOf(new PlayerManager(plugin, player).getGraceLeft());
+            // bypass
+            case "bypass": return String.valueOf(player.hasPermission("limitedlives.bypass"));
         }
 
-        // lives_PLAYER
-        if (identifier.startsWith("lives_")) {
-            final Player target = Bukkit.getPlayerExact(identifier.substring(6));
-            return target == null ? "N/A" : String.valueOf(new PlayerManager(plugin, target).getLives());
-        }
-        // max_PLAYER
-        if (identifier.startsWith("max_")) {
-            final Player target = Bukkit.getPlayerExact(identifier.substring(4));
-            return target == null ? "N/A" : String.valueOf(new PlayerManager(plugin, target).getMaxLives());
-        }
-        // grace-active_PLAYER
-        if (identifier.startsWith("grace-active_")) {
-            final Player target = Bukkit.getPlayerExact(identifier.substring(13));
-            return target == null ? "N/A" : String.valueOf(new PlayerManager(plugin, target).hasGrace());
-        }
-        // grace-left_PLAYER
-        if (identifier.startsWith("grace-left_")) {
-            final Player target = Bukkit.getPlayerExact(identifier.substring(11));
-            return target == null ? "N/A" : String.valueOf(new PlayerManager(plugin, target).getGraceLeft());
-        }
-
-        switch (identifier) {
-            // default
-            case "default": return String.valueOf(plugin.config.lives.def);
-            // max
-            case "max": return String.valueOf(plugin.config.lives.max);
-            // min
-            case "min": return String.valueOf(plugin.config.lives.min);
-
-            // Unknown
-            default: return null;
-        }
+        // Unknown placeholder
+        return null;
     }
 }
