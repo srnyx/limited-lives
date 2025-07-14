@@ -50,8 +50,8 @@ public class PlayerListener extends AnnoyingListener {
     public void onPlayerDeath(@NotNull PlayerDeathEvent event) {
         final Player player = event.getEntity();
         
-        // Check if plugin enabled in world
-        if (!plugin.config.worldsBlacklist.isWorldEnabled(player.getWorld())) return;
+        // Check if plugin enabled in world or player bypasses
+        if (!plugin.config.worldsBlacklist.isWorldEnabled(player.getWorld()) || player.hasPermission("limitedlives.bypass")) return;
 
         // Get killer
         final Player killer = player.getKiller();
