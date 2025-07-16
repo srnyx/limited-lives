@@ -19,7 +19,7 @@ import java.util.logging.Level;
 
 public class LimitedLives extends AnnoyingPlugin {
     public LimitedConfig config;
-    @Nullable public WorldGuardManager worldGuard;
+    @Nullable public final WorldGuardManager worldGuard;
 
     public LimitedLives() {
         options
@@ -38,6 +38,15 @@ public class LimitedLives extends AnnoyingPlugin {
                 .toRegister(new PlayerListener(this))
                 .papiExpansionToRegister(() -> new PlaceholderManager(this))
                 .automaticRegistration.packages("xyz.srnyx.limitedlives.commands");
+
+        // Register WorldGuardManager (needs to happen on load before WorldGuard enables)
+        WorldGuardManager worldGuardManager = null;
+        if (Bukkit.getPluginManager().getPlugin("WorldGuard") != null) try {
+            worldGuardManager = new WorldGuardManager();
+        } catch (final Exception e) {
+            AnnoyingPlugin.log(Level.WARNING, "&cFailed to register WorldGuard flag!", e);
+        }
+        worldGuard = worldGuardManager;
     }
 
     @Override
@@ -50,12 +59,8 @@ public class LimitedLives extends AnnoyingPlugin {
     public void reload() {
         // Load config
         config = new LimitedConfig(this);
-        // Register WorldGuardManager
-        if (Bukkit.getPluginManager().getPlugin("WorldGuard") != null) try {
-            worldGuard = new WorldGuardManager();
-        } catch (final Exception e) {
-            AnnoyingPlugin.log(Level.WARNING, "&cFailed to register WorldGuard flag!", e);
-        }
+        // Store WorldGuard RegionContainer (needs to happen on enable after WorldGuard enables)
+        if (worldGuard != null) worldGuard.storeRegionContainer();
         // Detect very old data (data/data.yml, 2.0.1 and lower)
         final File oldDataFile = new File(getDataFolder(), "data/data.yml");
         if (oldDataFile.exists()) log(Level.SEVERE, "&c&lOld data detected!&c To keep your old data, please update to &43.0.1&c FIRST and then to &4" + getDescription().getVersion() + "&c! &oIf this is incorrect, delete &4&o" + oldDataFile.getPath());
