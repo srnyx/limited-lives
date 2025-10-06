@@ -1,3 +1,5 @@
+import xyz.srnyx.gradlegalaxy.data.config.DependencyConfig
+import xyz.srnyx.gradlegalaxy.data.config.JavaSetupConfig
 import xyz.srnyx.gradlegalaxy.enums.Repository
 import xyz.srnyx.gradlegalaxy.enums.repository
 import xyz.srnyx.gradlegalaxy.utility.setupAnnoyingAPI
@@ -6,12 +8,14 @@ import xyz.srnyx.gradlegalaxy.utility.spigotAPI
 
 plugins {
     java
-    id("xyz.srnyx.gradle-galaxy") version "1.3.3"
-    id("com.gradleup.shadow") version "8.3.8"
+    id("xyz.srnyx.gradle-galaxy") version "2.0.2"
+    id("com.gradleup.shadow") version "8.3.9"
 }
 
-spigotAPI("1.8.8")
-setupAnnoyingAPI("2fa992b25a", "xyz.srnyx", "4.1.0", "Each player has a limited number of lives. If you die, you are punished")
+setupAnnoyingAPI(
+    javaSetupConfig = JavaSetupConfig("xyz.srnyx", "4.2.0", "Each player has a limited number of lives. If you die, you are punished"),
+    annoyingAPIConfig = DependencyConfig("1c2e7eef30"))
+spigotAPI(config = DependencyConfig("1.8.8"))
 
 repository(Repository.PLACEHOLDER_API, Repository.ENGINE_HUB)
 dependencies {

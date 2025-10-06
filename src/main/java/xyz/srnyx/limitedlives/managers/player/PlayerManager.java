@@ -51,7 +51,10 @@ public class PlayerManager {
 
     public int getMaxLives() {
         final Player online = offline.getPlayer();
-        return online != null ? BukkitUtility.getPermissionValue(online, "limitedlives.max.").orElse(plugin.config.lives.max) : plugin.config.lives.max;
+        if (online == null) return plugin.config.lives.max;
+        return BukkitUtility.getPermissionValue(online, "limitedlives.max.")
+                .map(Long::intValue)
+                .orElse(plugin.config.lives.max);
     }
 
     /**
