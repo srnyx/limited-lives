@@ -11,10 +11,12 @@ import org.jetbrains.annotations.Nullable;
 import xyz.srnyx.annoyingapi.AnnoyingPlugin;
 import xyz.srnyx.annoyingapi.data.ItemData;
 import xyz.srnyx.annoyingapi.file.AnnoyingResource;
+import xyz.srnyx.annoyingapi.libs.javautilities.manipulation.Mapper;
 
 import xyz.srnyx.limitedlives.LimitedLives;
 import xyz.srnyx.limitedlives.managers.player.PlayerManager;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -74,7 +76,7 @@ public class LimitedConfig {
 
             public Actions() {
                 // def
-                def = KeepInventoryAction.fromString(config.getString("keep-inventory.actions.default")).orElse(KeepInventoryAction.KEEP);
+                def = Mapper.toEnum(config.getString("keep-inventory.actions.default"), KeepInventoryAction.class).orElse(KeepInventoryAction.KEEP);
 
                 // actions
                 final ConfigurationSection section = config.getConfigurationSection("keep-inventory.actions");
@@ -87,7 +89,7 @@ public class LimitedConfig {
                         AnnoyingPlugin.log(Level.WARNING, "Invalid keep inventory action count: " + key);
                         continue;
                     }
-                    KeepInventoryAction.fromString(config.getString("keep-inventory.actions." + key))
+                    Mapper.toEnum(config.getString("keep-inventory.actions." + key), KeepInventoryAction.class)
                             .ifPresent(keepInventoryAction -> exact.put(count, keepInventoryAction));
                 }
             }
@@ -102,10 +104,11 @@ public class LimitedConfig {
 
     public class GracePeriod {
         public final boolean enabled = config.getBoolean("grace-period.enabled", false);
-        public final int duration = config.getInt("grace-period.duration", 60) * 1000;
+        @NotNull public final Duration duration = Duration.ofSeconds(config.getInt("grace-period.duration", 60));
         @NotNull public final Set<GracePeriodTrigger> triggers = config.getStringList("grace-period.triggers").stream()
-                .map(GracePeriodTrigger::fromString)
-                .filter(Objects::nonNull)
+                .map(string -> Mapper.toEnum(string, GracePeriodTrigger.class))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .collect(Collectors.toSet());
         @NotNull public final Set<String> bypassCauses = getDamageCauses(config.getStringList("grace-period.bypass-causes"));
         @NotNull public final Set<String> disabledDamageCauses = getDamageCauses(config.getStringList("grace-period.disabled-damage-causes"));

@@ -74,7 +74,7 @@ public class PlayerManager {
         // Calculate
         final long graceLeft;
         try {
-            graceLeft = plugin.config.gracePeriod.duration - (System.currentTimeMillis() - Long.parseLong(graceStart));
+            graceLeft = plugin.config.gracePeriod.duration.toMillis() - (System.currentTimeMillis() - Long.parseLong(graceStart));
         } catch (final NumberFormatException e) {
             AnnoyingPlugin.log(Level.WARNING, "&cRemoved invalid " + GRACE_START_KEY + " value for &4" + offline.getName() + "&c: &4" + graceStart, e);
             data.remove(GRACE_START_KEY);
