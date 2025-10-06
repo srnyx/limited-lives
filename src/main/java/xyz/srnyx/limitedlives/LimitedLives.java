@@ -52,7 +52,11 @@ public class LimitedLives extends AnnoyingPlugin {
     @Override
     public void enable() {
         reload();
-        if (config.obtaining.crafting.recipe != null) Bukkit.addRecipe(config.obtaining.crafting.recipe);
+        if (config.obtaining.crafting.recipe != null) try {
+            Bukkit.addRecipe(config.obtaining.crafting.recipe);
+        } catch (final Exception e) {
+            log(Level.WARNING, "&cFailed to add crafting recipe!", e);
+        }
     }
 
     @Override
