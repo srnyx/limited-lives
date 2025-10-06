@@ -129,8 +129,21 @@ public class LimitedConfig {
         @NotNull public final Crafting crafting = new Crafting();
 
         public class Crafting {
+            @NotNull private static final String OBTAINING_CRAFTING_TRIGGERS = "obtaining.crafting.triggers";
+
             public final int amount = config.getInt("obtaining.crafting.amount", 1);
+            @NotNull public final Set<CraftingTrigger> triggers;
+            @NotNull public final Duration cooldown = Duration.ofMillis(config.getLong("obtaining.crafting.cooldown", 500));
             @Nullable public final Recipe recipe = config.getBoolean("obtaining.crafting.enabled", true) ? config.getRecipe("obtaining.crafting.recipe", item -> new ItemData(config.plugin, item).setChain(PlayerManager.ITEM_KEY, true).target, "life").orElse(null) : null;
+
+            public Crafting() {
+                triggers = new HashSet<>();
+                if (config.isSet(OBTAINING_CRAFTING_TRIGGERS)) {
+                    for (final String string : config.getStringList(OBTAINING_CRAFTING_TRIGGERS)) Mapper.toEnum(string, CraftingTrigger.class).ifPresent(triggers::add);
+                } else {
+                    triggers.add(CraftingTrigger.CONSUME);
+                }
+            }
         }
     }
 

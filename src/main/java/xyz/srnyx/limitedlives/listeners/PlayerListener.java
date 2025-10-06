@@ -8,7 +8,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -18,7 +17,6 @@ import org.jetbrains.annotations.NotNull;
 import xyz.srnyx.annoyingapi.AnnoyingListener;
 import xyz.srnyx.annoyingapi.AnnoyingPlugin;
 import xyz.srnyx.annoyingapi.data.EntityData;
-import xyz.srnyx.annoyingapi.data.ItemData;
 import xyz.srnyx.annoyingapi.message.AnnoyingMessage;
 import xyz.srnyx.annoyingapi.message.DefaultReplaceType;
 
@@ -27,7 +25,6 @@ import xyz.srnyx.limitedlives.LimitedLives;
 import xyz.srnyx.limitedlives.managers.player.PlayerManager;
 import xyz.srnyx.limitedlives.managers.player.exception.ActionException;
 import xyz.srnyx.limitedlives.managers.player.exception.LessThanMinLives;
-import xyz.srnyx.limitedlives.managers.player.exception.MoreThanMaxLives;
 
 import java.util.Map;
 import java.util.UUID;
@@ -144,22 +141,6 @@ public class PlayerListener extends AnnoyingListener {
         if (!(entity instanceof Player)) return;
         final String cause = event.getDamager() instanceof Player ? "PLAYER_ATTACK" : event.getCause().name();
         if (plugin.config.gracePeriod.disabledDamageCauses.contains(cause) && new PlayerManager(plugin, (Player) entity).hasGrace()) event.setCancelled(true);
-    }
-
-    @EventHandler
-    public void onPlayerItemConsume(@NotNull PlayerItemConsumeEvent event) {
-        if (plugin.config.obtaining.crafting.recipe == null || !new ItemData(plugin, event.getItem()).has(PlayerManager.ITEM_KEY)) return;
-        final Player player = event.getPlayer();
-        try {
-            new AnnoyingMessage(plugin, "eat.success")
-                    .replace("%lives%", new PlayerManager(plugin, player).addLives(plugin.config.obtaining.crafting.amount))
-                    .send(player);
-        } catch (final MoreThanMaxLives e) {
-            event.setCancelled(true);
-            new AnnoyingMessage(plugin, "eat.max")
-                    .replace("%max%", plugin.config.lives.max)
-                    .send(player);
-        }
     }
 
     @EventHandler

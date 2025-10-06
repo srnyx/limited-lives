@@ -11,11 +11,13 @@ lives:
   min: 0
 
 
+
 # The causes that will result in a player to losing a life, leave empty for all causes
 # Available causes:
 # - https://srnyx.com/docs/spigot/org/bukkit/event/entity/EntityDamageEvent.DamageCause.html
 # - PLAYER_ATTACK: Death caused by another player (PVP)
 death-causes: []
+
 
 
 # A list of worlds where the plugin won't be enabled
@@ -28,11 +30,13 @@ worlds-blacklist:
   act-as-whitelist: false
 
 
+
 # THE keepInventory GAMERULE MUST BE SET TO false FOR THIS TO WORK (the plugin will disable it if it's enabled)!
 # If it isn't, some players' inventories may be permanently lost!
 keep-inventory:
   # This will toggle this entire feature on or off
   enabled: false
+
   # The actions that will be taken when a player dies for the X time (death count is calculated using: max lives - current lives)
   # keep: Keep the player's inventory, as if keepInventory was true
   # drop: Drop the player's inventory on the ground, as if keepInventory was false
@@ -42,6 +46,7 @@ keep-inventory:
     1: drop # EXAMPLE: This would drop the player's inventory on their 1st death
     5: drop # EXAMPLE: This would drop the player's inventory on their 5th death
     10: destroy # EXAMPLE: This would destroy the player's inventory on their 10th death
+
 
 
 # A period of time after a player joins the server and/or is revived where they won't lose lives
@@ -73,9 +78,10 @@ grace-period:
   disabled-damage-causes: []
 
 
+
 commands:
-  # The commands that will be executed when a player loses all their lives (executed by the console)
-  # It's best to have the doImmediateRespawn gamerule set to true and then only use death commands
+  # The commands that will be executed when a player loses all their lives (executed by the console).
+  # It's best to have the doImmediateRespawn gamerule set to true and then only use death commands.
   # %player% - The player that lost all their lives
   # %killer% - The player that got the final kill on %player%. If %player% died from a non-player cause, any commands that use %killer% will be ignored
   punishment:
@@ -91,16 +97,30 @@ commands:
     - "gamemode survival %player%"
 
 
+
 # Different ways of obtaining lives
 obtaining:
   # Whether to enable killers gaining a life when they kill a player
   stealing: true
 
+
   crafting:
-    # Whether to enable crafting an item that can be CONSUMED to gain lives
+    # Whether to enable crafting an item that can be used to gain lives
     enabled: true
-    # The amount of lives that will be gained when the item is consumed
+
+    # The amount of lives that will be gained when the item is used
     amount: 1
+
+    # The action that triggers the item to be used
+    # Available options: CONSUME, LEFT_CLICK, RIGHT_CLICK
+    triggers:
+      - CONSUME # When the item is consumed (material must be a CONSUMABLE item)
+      #- LEFT_CLICK # When the item is left-clicked with
+      #- RIGHT_CLICK # When the item is right-clicked with
+
+    # The cooldown (in milliseconds) before the item can be used again (only applies to LEFT_CLICK and RIGHT_CLICK triggers).
+    # This should probably be greater than 0 to prevent accidental uses.
+    cooldown: 1000 # milliseconds
 
     recipe: # RECIPE (see documentation)
       ingredients:
@@ -111,7 +131,7 @@ obtaining:
         - "RBR"
         - " R "
       result:
-        material: APPLE # Must be a CONSUMABLE item
+        material: APPLE
         name: "&c&lLife"
         lore:
           - "&7Eat to gain a life!"

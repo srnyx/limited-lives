@@ -45,11 +45,12 @@ lives:
     other: "%p%You lost a life, you now have %s%%lives%%p%!"
   zero: "%p%You lost all your lives!"
   steal: "%p%You stole a life from %s%%target%%p%, you now have %s%%lives%%p%!" # %target%, %lives%
-  grace: "%p%You didn't lose a life because you're in the grace period! You have %s%%remaining==s%%p% seconds left of grace" # %remaining==time%
+  grace: "%p%You didn't lose a life because you're in the grace period! You have %s%%remaining==s% seconds%p% left of grace" # %remaining==time%
 
 eat:
-  success: "%p%You ate a life, you now have %s%%lives%%p% lives!" # %lives%
+  success: "%p%You consumed a life, you now have %s%%lives%%p% lives!" # %lives%
 
+  cooldown: "%p%You must wait %s%%remaining==S% milliseconds%p% before consuming another life!" # %remaining==time%
   max: "%p%You already have the maximum amount of lives (%s%%max%%p%)!" # %max%
 
 get: # %lives%

@@ -2,12 +2,16 @@ package xyz.srnyx.limitedlives;
 
 import org.bukkit.Bukkit;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import xyz.srnyx.annoyingapi.AnnoyingPlugin;
 import xyz.srnyx.annoyingapi.PluginPlatform;
 
+import xyz.srnyx.limitedlives.config.CraftingTrigger;
 import xyz.srnyx.limitedlives.config.LimitedConfig;
+import xyz.srnyx.limitedlives.listeners.PlayerInteractListener;
+import xyz.srnyx.limitedlives.listeners.PlayerItemConsumeListener;
 import xyz.srnyx.limitedlives.listeners.PlayerListener;
 import xyz.srnyx.limitedlives.managers.PlaceholderManager;
 import xyz.srnyx.limitedlives.managers.WorldGuardManager;
@@ -19,6 +23,8 @@ import java.util.logging.Level;
 
 public class LimitedLives extends AnnoyingPlugin {
     public LimitedConfig config;
+    @NotNull public final PlayerItemConsumeListener playerItemConsumeListener = new PlayerItemConsumeListener(this);
+    @NotNull public final PlayerInteractListener playerInteractListener = new PlayerInteractListener(this);
     @Nullable public final WorldGuardManager worldGuard;
 
     public LimitedLives() {
@@ -68,5 +74,9 @@ public class LimitedLives extends AnnoyingPlugin {
         // Detect very old data (data/data.yml, 2.0.1 and lower)
         final File oldDataFile = new File(getDataFolder(), "data/data.yml");
         if (oldDataFile.exists()) log(Level.SEVERE, "&c&lOld data detected!&c To keep your old data, please update to &43.0.1&c FIRST and then to &4" + getDescription().getVersion() + "&c! &oIf this is incorrect, delete &4&o" + oldDataFile.getPath());
+
+        // Register appropriate listeners
+        playerItemConsumeListener.setRegistered(config.obtaining.crafting.triggers.contains(CraftingTrigger.CONSUME));
+        playerInteractListener.setRegistered(config.obtaining.crafting.triggers.contains(CraftingTrigger.LEFT_CLICK) || config.obtaining.crafting.triggers.contains(CraftingTrigger.RIGHT_CLICK));
     }
 }
