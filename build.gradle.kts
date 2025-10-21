@@ -15,7 +15,7 @@ plugins {
 spigotAPI(config = DependencyConfig("1.8.8"))
 setupAnnoyingAPI(
     javaSetupConfig = JavaSetupConfig("xyz.srnyx", "4.2.0", "Each player has a limited number of lives. If you die, you are punished"),
-    annoyingAPIConfig = DependencyConfig("f1811a9961"))
+    annoyingAPIConfig = DependencyConfig("3375b21876"))
 
 repository(Repository.PLACEHOLDER_API, Repository.ENGINE_HUB)
 dependencies {

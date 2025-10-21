@@ -11,7 +11,6 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -131,11 +130,7 @@ public class PlayerListener extends AnnoyingListener {
         final OfflinePlayer finalKiller = killer;
 
         // Run respawn commands
-        new BukkitRunnable() {
-            public void run() {
-                PlayerManager.dispatchCommands(plugin.config.commands.punishment.respawn, player, finalKiller);
-            }
-        }.runTaskLater(plugin, 1);
+        new PlayerManager(plugin, player).dispatchCommands(plugin.config.commands.punishment.respawn, finalKiller);
     }
 
     @EventHandler

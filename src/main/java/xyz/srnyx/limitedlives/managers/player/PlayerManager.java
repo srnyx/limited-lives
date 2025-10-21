@@ -133,21 +133,23 @@ public class PlayerManager {
         // Start grace period
         if (plugin.config.gracePeriod.triggers.contains(GracePeriodTrigger.REVIVE)) data.set(GRACE_START_KEY, System.currentTimeMillis());
         // Dispatch revive commands
-        dispatchCommands(plugin.config.commands.revive, offline, null);
+        dispatchCommands(plugin.config.commands.revive, null);
     }
 
     private void kill(@Nullable Player killer) {
         data.set(DEAD_KEY, killer != null ? killer.getUniqueId().toString() : "null");
-        dispatchCommands(plugin.config.commands.punishment.death, offline, killer);
+        dispatchCommands(plugin.config.commands.punishment.death, killer);
     }
 
-    public static void dispatchCommands(@NotNull List<String> commands, @NotNull OfflinePlayer player, @Nullable OfflinePlayer killer) {
-        for (String command : commands) {
-            if (command.contains("%killer%")) {
-                if (killer == null) continue;
-                command = command.replace("%killer%", killer.getName());
+    public void dispatchCommands(@NotNull List<String> commands, @Nullable OfflinePlayer killer) {
+        plugin.scheduler.runSync(() -> {
+            for (String command : commands) {
+                if (command.contains("%killer%")) {
+                    if (killer == null) continue;
+                    command = command.replace("%killer%", killer.getName());
+                }
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replace("%player%", offline.getName()));
             }
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replace("%player%", player.getName()));
-        }
+        });
     }
 }

@@ -105,6 +105,7 @@ commands:
     # Executed right when the player dies and/or when they lose all their lives from a command (ex: /lives remove)
     death: []
     # Executed when the player respawns
+    # FOLIA: These do not work on Folia servers! Please enable the doImmediateRespawn gamerule and use death commands instead
     respawn:
       - "gamemode spectator %player%"
   

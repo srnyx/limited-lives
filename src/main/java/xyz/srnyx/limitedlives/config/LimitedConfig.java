@@ -119,8 +119,15 @@ public class LimitedConfig {
         @NotNull public final List<String> revive = config.getStringList("commands.revive");
 
         public class Punishment {
+            @NotNull private static final String COMMANDS_PUNISHMENT_RESPAWN = "commands.punishment.respawn";
+
             @NotNull public final List<String> death = config.getStringList("commands.punishment.death");
-            @NotNull public final List<String> respawn = config.getStringList("commands.punishment.respawn");
+            @NotNull public final List<String> respawn = config.getStringList(COMMANDS_PUNISHMENT_RESPAWN);
+
+            public Punishment() {
+                // Folia check for respawn commands
+                if (AnnoyingPlugin.FOLIA && !respawn.isEmpty()) AnnoyingPlugin.log(Level.WARNING, "&c&lThe respawn punishment commands are not supported on Folia! &cPlease enable the doImmediateRespawn gamerule and use death commands instead.\n&c&oTo disable this message, set &4&o" + COMMANDS_PUNISHMENT_RESPAWN + "&c&o to &4&o[]&c&o in &4&oconfig.yml");
+            }
         }
     }
 
