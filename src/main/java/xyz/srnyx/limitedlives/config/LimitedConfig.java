@@ -105,13 +105,13 @@ public class LimitedConfig {
     public class GracePeriod {
         public final boolean enabled = config.getBoolean("grace-period.enabled", false);
         @NotNull public final Duration duration = Duration.ofSeconds(config.getInt("grace-period.duration", 60));
-        @NotNull public final Set<GracePeriodTrigger> triggers = config.getStringList("grace-period.triggers").stream()
-                .map(string -> Mapper.toEnum(string, GracePeriodTrigger.class))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toSet());
+        @NotNull public final Set<GracePeriodTrigger> triggers = new HashSet<>();
         @NotNull public final Set<String> bypassCauses = getDamageCauses(config.getStringList("grace-period.bypass-causes"));
         @NotNull public final Set<String> disabledDamageCauses = getDamageCauses(config.getStringList("grace-period.disabled-damage-causes"));
+
+        public GracePeriod() {
+            for (final String string : config.getStringList("grace-period.triggers")) Mapper.toEnum(string, GracePeriodTrigger.class).ifPresent(triggers::add);
+        }
     }
 
     public class Commands {
@@ -132,12 +132,11 @@ public class LimitedConfig {
             @NotNull private static final String OBTAINING_CRAFTING_TRIGGERS = "obtaining.crafting.triggers";
 
             public final int amount = config.getInt("obtaining.crafting.amount", 1);
-            @NotNull public final Set<CraftingTrigger> triggers;
+            @NotNull public final Set<CraftingTrigger> triggers = new HashSet<>();
             @NotNull public final Duration cooldown = Duration.ofMillis(config.getLong("obtaining.crafting.cooldown", 500));
             @Nullable public final Recipe recipe = config.getBoolean("obtaining.crafting.enabled", true) ? config.getRecipe("obtaining.crafting.recipe", item -> new ItemData(config.plugin, item).setChain(PlayerManager.ITEM_KEY, true).target, "life").orElse(null) : null;
 
             public Crafting() {
-                triggers = new HashSet<>();
                 if (config.isSet(OBTAINING_CRAFTING_TRIGGERS)) {
                     for (final String string : config.getStringList(OBTAINING_CRAFTING_TRIGGERS)) Mapper.toEnum(string, CraftingTrigger.class).ifPresent(triggers::add);
                 } else {
@@ -148,13 +147,28 @@ public class LimitedConfig {
     }
 
     public class WorldsBlacklist {
+        @NotNull private static final String WORLDS_BLACKLIST_AFFECTED_FEATURES = "worlds-blacklist.affected-features";
+
         @NotNull public final Set<String> list = config.getStringList("worlds-blacklist.list").stream()
                 .map(String::toLowerCase)
                 .collect(Collectors.toSet());
         public final boolean actAsWhitelist = config.getBoolean("worlds-blacklist.act-as-whitelist", false);
+        private final Set<Feature> affectedFeatures = new HashSet<>();
 
-        public boolean isWorldEnabled(@NotNull World world) {
-            return actAsWhitelist == list.contains(world.getName().toLowerCase());
+        public WorldsBlacklist() {
+            if (config.isSet(WORLDS_BLACKLIST_AFFECTED_FEATURES)) {
+                for (final String string : config.getStringList(WORLDS_BLACKLIST_AFFECTED_FEATURES)) Mapper.toEnum(string, Feature.class).ifPresent(affectedFeatures::add);
+            } else {
+                affectedFeatures.addAll(Arrays.asList(Feature.values()));
+            }
+        }
+
+        public boolean isWorldEnabled(@NotNull World world, @NotNull Feature feature) {
+            final boolean inList = list.contains(world.getName().toLowerCase());
+            final boolean affectsFeature = affectedFeatures.contains(feature);
+            return actAsWhitelist
+                    ? inList && affectsFeature
+                    : !inList || !affectsFeature;
         }
     }
 }

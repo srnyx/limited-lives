@@ -2,6 +2,7 @@ package xyz.srnyx.limitedlives.listeners;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -20,6 +21,7 @@ import xyz.srnyx.annoyingapi.data.EntityData;
 import xyz.srnyx.annoyingapi.message.AnnoyingMessage;
 import xyz.srnyx.annoyingapi.message.DefaultReplaceType;
 
+import xyz.srnyx.limitedlives.config.Feature;
 import xyz.srnyx.limitedlives.config.GracePeriodTrigger;
 import xyz.srnyx.limitedlives.LimitedLives;
 import xyz.srnyx.limitedlives.managers.player.PlayerManager;
@@ -48,7 +50,8 @@ public class PlayerListener extends AnnoyingListener {
         final Player player = event.getEntity();
         
         // Check if plugin enabled in world or player bypasses
-        if (!plugin.config.worldsBlacklist.isWorldEnabled(player.getWorld()) || player.hasPermission("limitedlives.bypass")) return;
+        final World world = player.getWorld();
+        if (!plugin.config.worldsBlacklist.isWorldEnabled(world, Feature.LIFE_LOSS) || player.hasPermission("limitedlives.bypass")) return;
 
         // Get killer
         final Player killer = player.getKiller();
@@ -101,10 +104,10 @@ public class PlayerListener extends AnnoyingListener {
         }
 
         // keepInventory integration
-        if (plugin.config.keepInventory.enabled) plugin.config.keepInventory.actions.getAction(manager.getDeaths()).consumer.accept(event);
+        if (plugin.config.keepInventory.enabled && plugin.config.worldsBlacklist.isWorldEnabled(world, Feature.KEEP_INVENTORY)) plugin.config.keepInventory.actions.getAction(manager.getDeaths()).consumer.accept(event);
 
         // Give life to killer
-        if (plugin.config.obtaining.stealing && isPvp) try {
+        if (plugin.config.obtaining.stealing && isPvp && plugin.config.worldsBlacklist.isWorldEnabled(world, Feature.OBTAINING_STEALING)) try {
             new AnnoyingMessage(plugin, "lives.steal")
                     .replace("%target%", player.getName())
                     .replace("%lives%", new PlayerManager(plugin, killer).addLives(1))

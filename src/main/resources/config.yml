@@ -29,6 +29,23 @@ worlds-blacklist:
   # If true, the list of worlds above will act as a whitelist, meaning only those worlds will have the plugin enabled
   act-as-whitelist: false
 
+  # The features that will be affected by the worlds blacklist/whitelist
+  # Example: "world_1" is in the list and only "LIFE_LOSS" is specified below. If act-as-whitelist is false, players in "world_1" will not lose lives, but all other features will still work. If act-as-whitelist is true, players in "world_1" will only be affected by the "LIFE_LOSS" feature, and all other features will NOT work.
+  # Available features:
+  # - COMMANDS: The /lives commands for the plugin
+  # - LIFE_LOSS: Players losing lives
+  # - LIFE_USE: Players using lives (ex: right-clicking the life item)
+  # - OBTAINING_STEALING: Gaining lives from killing players
+  # - OBTAINING_CRAFTING: Ability to craft the life item (for using it, see LIFE_USE)
+  # - KEEP_INVENTORY: The keep-inventory feature (so will just use the world's keepInventory gamerule setting)
+  affected-features:
+    - "COMMANDS"
+    - "LIFE_LOSS"
+    - "LIFE_USE"
+    - "OBTAINING_STEALING"
+    - "OBTAINING_CRAFTING"
+    - "KEEP_INVENTORY"
+
 
 
 # THE keepInventory GAMERULE MUST BE SET TO false FOR THIS TO WORK (the plugin will disable it if it's enabled)!

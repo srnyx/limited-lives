@@ -39,6 +39,8 @@ error:
 
 reload: "%prefix%Successfully reloaded the plugin@@%p%%command%@@%command%"
 
+feature-disabled: "%prefix%%se%%feature%%pe% is disabled in %se%%world%%pe%!" # %feature%, %world%
+
 lives:
   lose: # %lives%
     player: "%p%You lost a life to %s%%killer%%p%, you now have %s%%lives%%p%!" # %killer%

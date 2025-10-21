@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import org.bukkit.OfflinePlayer;
+import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -23,6 +24,7 @@ import xyz.srnyx.annoyingapi.message.AnnoyingMessage;
 import xyz.srnyx.annoyingapi.utility.BukkitUtility;
 
 import xyz.srnyx.limitedlives.LimitedLives;
+import xyz.srnyx.limitedlives.config.Feature;
 import xyz.srnyx.limitedlives.managers.player.PlayerManager;
 import xyz.srnyx.limitedlives.managers.player.exception.*;
 
@@ -49,6 +51,17 @@ public class LivesCmd extends AnnoyingCommand {
 
     @Override
     public void onCommand(@NotNull AnnoyingSender sender) {
+        // Check if commands enabled
+        if (sender.isPlayer) {
+            final World world = sender.getPlayer().getWorld();
+            if (!plugin.config.worldsBlacklist.isWorldEnabled(world, Feature.COMMANDS)) {
+                new AnnoyingMessage(plugin, "feature-disabled")
+                        .replace("%feature%", Feature.COMMANDS)
+                        .replace("%world%", world.getName())
+                        .send(sender);
+                return;
+            }
+        }
         final int length = sender.args.length;
 
         // No arguments, get
@@ -336,6 +349,8 @@ public class LivesCmd extends AnnoyingCommand {
 
     @Override @Nullable
     public Collection<String> onTabComplete(@NotNull AnnoyingSender sender) {
+        // Check if commands enabled
+        if (!plugin.config.worldsBlacklist.isWorldEnabled(sender.getPlayer().getWorld(), Feature.COMMANDS)) return null;
         final String[] args = sender.args;
         final int length = args.length;
 

@@ -10,6 +10,7 @@ import xyz.srnyx.annoyingapi.PluginPlatform;
 
 import xyz.srnyx.limitedlives.config.CraftingTrigger;
 import xyz.srnyx.limitedlives.config.LimitedConfig;
+import xyz.srnyx.limitedlives.listeners.CraftListener;
 import xyz.srnyx.limitedlives.listeners.PlayerInteractListener;
 import xyz.srnyx.limitedlives.listeners.PlayerItemConsumeListener;
 import xyz.srnyx.limitedlives.listeners.PlayerListener;
@@ -25,6 +26,7 @@ public class LimitedLives extends AnnoyingPlugin {
     public LimitedConfig config;
     @NotNull public final PlayerItemConsumeListener playerItemConsumeListener = new PlayerItemConsumeListener(this);
     @NotNull public final PlayerInteractListener playerInteractListener = new PlayerInteractListener(this);
+    @NotNull public final CraftListener craftListener = new CraftListener(this);
     @Nullable public final WorldGuardManager worldGuard;
 
     public LimitedLives() {
@@ -78,5 +80,6 @@ public class LimitedLives extends AnnoyingPlugin {
         // Register appropriate listeners
         playerItemConsumeListener.setRegistered(config.obtaining.crafting.triggers.contains(CraftingTrigger.CONSUME));
         playerInteractListener.setRegistered(config.obtaining.crafting.triggers.contains(CraftingTrigger.LEFT_CLICK) || config.obtaining.crafting.triggers.contains(CraftingTrigger.RIGHT_CLICK));
+        craftListener.setRegistered(config.obtaining.crafting.recipe != null);
     }
 }

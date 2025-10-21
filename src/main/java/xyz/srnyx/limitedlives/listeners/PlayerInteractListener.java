@@ -1,5 +1,6 @@
 package xyz.srnyx.limitedlives.listeners;
 
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
@@ -16,6 +17,7 @@ import xyz.srnyx.annoyingapi.message.DefaultReplaceType;
 
 import xyz.srnyx.limitedlives.LimitedLives;
 import xyz.srnyx.limitedlives.config.CraftingTrigger;
+import xyz.srnyx.limitedlives.config.Feature;
 import xyz.srnyx.limitedlives.managers.player.PlayerManager;
 import xyz.srnyx.limitedlives.managers.player.exception.MoreThanMaxLives;
 
@@ -48,10 +50,20 @@ public class PlayerInteractListener extends AnnoyingListener {
                 // Isn't right click
                 && ((action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) || !plugin.config.obtaining.crafting.triggers.contains(CraftingTrigger.RIGHT_CLICK)))
                 // Isn't holding item
-                || !new ItemData(plugin, item).has(PlayerManager.ITEM_KEY)) return;
+                || (item == null || !new ItemData(plugin, item).has(PlayerManager.ITEM_KEY))) return;
 
         event.setCancelled(true);
         final Player player = event.getPlayer();
+
+        // LIFE_USE disabled in world
+        final World world = player.getWorld();
+        if (!plugin.config.worldsBlacklist.isWorldEnabled(world, Feature.LIFE_USE)) {
+            new AnnoyingMessage(plugin, "feature-disabled")
+                    .replace("%feature%", Feature.LIFE_USE)
+                    .replace("%world%", world.getName())
+                    .send(player);
+            return;
+        }
 
         // Check cooldown
         final AnnoyingCooldown cooldown = plugin.cooldownManager.getCooldownElseNew(player.getUniqueId(), COOLDOWN_KEY);
