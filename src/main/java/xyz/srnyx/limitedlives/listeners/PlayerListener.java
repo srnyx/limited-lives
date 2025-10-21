@@ -139,10 +139,10 @@ public class PlayerListener extends AnnoyingListener {
     }
 
     @EventHandler
-    public void onEntityDamageByEntity(@NotNull EntityDamageByEntityEvent event) {
+    public void onEntityDamageByEntity(@NotNull EntityDamageEvent event) {
         final Entity entity = event.getEntity();
         if (!(entity instanceof Player)) return;
-        final String cause = event.getDamager() instanceof Player ? "PLAYER_ATTACK" : event.getCause().name();
+        final String cause = event instanceof EntityDamageByEntityEvent && ((EntityDamageByEntityEvent) event).getDamager() instanceof Player ? "PLAYER_ATTACK" : event.getCause().name();
         if (plugin.config.gracePeriod.disabledDamageCauses.contains(cause) && new PlayerManager(plugin, (Player) entity).hasGrace()) event.setCancelled(true);
     }
 
