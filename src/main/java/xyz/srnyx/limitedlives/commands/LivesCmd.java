@@ -14,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import xyz.srnyx.annoyingapi.AnnoyingPlugin;
 import xyz.srnyx.annoyingapi.command.AnnoyingCommand;
 import xyz.srnyx.annoyingapi.command.AnnoyingSender;
+import xyz.srnyx.annoyingapi.command.selector.Selector;
 import xyz.srnyx.annoyingapi.data.EntityData;
 import xyz.srnyx.annoyingapi.data.StringData;
 import xyz.srnyx.annoyingapi.libs.javautilities.FileUtility;
@@ -127,12 +128,14 @@ public class LivesCmd extends AnnoyingCommand {
         // get <player>
         if (sender.argEquals(0, "get")) {
             if (!sender.checkPermission("limitedlives.get.other")) return;
-            final OfflinePlayer player = sender.getArgumentOptionalFlat(1, BukkitUtility::getOfflinePlayer).orElse(null);
-            if (player == null) return;
-            new AnnoyingMessage(plugin, "get.other")
-                    .replace("%target%", player.getName())
-                    .replace("%lives%", new PlayerManager(plugin, player).getLives())
-                    .send(sender);
+            final List<OfflinePlayer> players = sender.getSelector(1, OfflinePlayer.class)
+                    .orElseFlatSingle(BukkitUtility::getOfflinePlayer);
+            if (players != null) for (final OfflinePlayer player : players) {
+                new AnnoyingMessage(plugin, "get.other")
+                        .replace("%target%", player.getName())
+                        .replace("%lives%", new PlayerManager(plugin, player).getLives())
+                        .send(sender);
+            }
             return;
         }
 
@@ -348,7 +351,7 @@ public class LivesCmd extends AnnoyingCommand {
             }
             // get
             if (sender.argEquals(0, "get")) {
-                if (cmdSender.hasPermission("limitedlives.get.other")) return BukkitUtility.getOnlinePlayerNames();
+                if (cmdSender.hasPermission("limitedlives.get.other")) return Selector.addKeys(BukkitUtility.getOnlinePlayerNames(), OfflinePlayer.class);
                 if (cmdSender.hasPermission("limitedlives.get.self")) return Collections.singleton(cmdSender.getName());
                 return null;
             }
@@ -361,7 +364,7 @@ public class LivesCmd extends AnnoyingCommand {
         if (length == 3) {
             final String actionLower = sender.getArgumentOptional(0).map(String::toLowerCase).orElse(null);
             if (actionLower == null || actionLower.equals("get")) return null;
-            if (cmdSender.hasPermission("limitedlives." + actionLower + ".other")) return BukkitUtility.getOnlinePlayerNames();
+            if (cmdSender.hasPermission("limitedlives." + actionLower + ".other")) return Selector.addKeys(BukkitUtility.getOnlinePlayerNames(), OfflinePlayer.class);
             if (cmdSender.hasPermission("limitedlives." + actionLower + ".self")) return Collections.singleton(cmdSender.getName());
         }
 

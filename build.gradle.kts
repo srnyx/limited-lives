@@ -12,10 +12,10 @@ plugins {
     id("com.gradleup.shadow") version "8.3.9"
 }
 
+spigotAPI(config = DependencyConfig("1.8.8"))
 setupAnnoyingAPI(
     javaSetupConfig = JavaSetupConfig("xyz.srnyx", "4.2.0", "Each player has a limited number of lives. If you die, you are punished"),
-    annoyingAPIConfig = DependencyConfig("1c2e7eef30"))
-spigotAPI(config = DependencyConfig("1.8.8"))
+    annoyingAPIConfig = DependencyConfig("f1811a9961"))
 
 repository(Repository.PLACEHOLDER_API, Repository.ENGINE_HUB)
 dependencies {
