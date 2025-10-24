@@ -11,6 +11,11 @@ jobs:
     with:
       modrinth: LvTKDASD
       curseforge: 846826
+      loaders: |
+        purpur
+        paper
+        spigot
+        folia
     secrets: inherit
     permissions:
       contents: write
