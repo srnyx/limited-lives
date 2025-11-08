@@ -1,6 +1,6 @@
 DOCUMENTATION: https://annoying-api.srnyx.com/wiki/messages-file
 
-
+# ✔ ✘ ⚠
 # Messages for general plugin usage
 plugin:
   # These are placeholders that can be used in any message in this file
@@ -9,10 +9,11 @@ plugin:
   # WARNING: Global placeholders can conflict with local placeholders! Please be wary when creating your own global placeholder(s)!
   global-placeholders: # It's recommended to keep all the default global placeholders (prefix, p, s, pe, se)
     prefix: "&6&lLIVES &8&l| &e" # Prefix for the plugin, typically used in the beginning of most messages
+    # I prefer removing the 
     p: "&e" # Base color for non-error messages
     s: "&6" # Highlight color for non-error messages
-    pe: "&c" # Base color for error messages
-    se: "&4" # Highlight color for error messages
+    pe: "&c ✘ " # Base color and emoji for error messages
+    se: "&4 ⚠ " # Highlight color for error messages
 
   # These are the different splitters for messages/placeholders
   splitters:
@@ -22,7 +23,7 @@ plugin:
     placeholder: "=="
 
   # Message sent in the console when an update for the plugin is available
-  update-available: "%pe%A new version of %se%%plugin%%pe% is available! | Current: %se%%current%%pe% | New: %se%%new%" # %plugin%, %current%, %new%
+  update-available: "&e🔔 A new version of %se%%plugin%%pe% is available! | Current: %se%%current%%pe% | New: %se%%new%" # %plugin%, %current%, %new%
 
 # Error messages when a player does something wrong
 error:
@@ -43,25 +44,25 @@ feature-disabled: "%prefix%%se%%feature%%pe% is disabled in %se%%world%%pe%!" # 
 
 lives:
   lose: # %lives%
-    player: "%p%You lost a life to %s%%killer%%p%, you now have %s%%lives%%p%!" # %killer%
-    other: "%p%You lost a life, you now have %s%%lives%%p%!"
-  zero: "%p%You lost all your lives!"
-  steal: "%p%You stole a life from %s%%target%%p%, you now have %s%%lives%%p%!" # %target%, %lives%
-  grace: "%p%You didn't lose a life because you're in the grace period! You have %s%%remaining==s% seconds%p% left of grace" # %remaining==time%
+    player: "&c ☠ %p%You lost a life to %s%%killer%%p%, you now have %s%%lives%%p%!" # %killer%
+    other: "&c ☠ %p%You lost a life, you now have %s%%lives%%p%!"
+  zero: "&c ☠ %p%You lost all your lives!"
+  steal: "&c ☠ %p%You stole a life from %s%%target%%p%, you now have %s%%lives%%p%!" # %target%, %lives%
+  grace: "&a ☺ %p%You didn't lose a life because you're in the grace period! You have %s%%remaining==s% seconds%p% left of grace" # %remaining==time%
 
 eat:
-  success: "%p%You consumed a life, you now have %s%%lives%%p% lives!" # %lives%
+  success: "&a ❤ %p%You consumed a life, you now have %s%%lives%%p% lives!" # %lives%
 
-  cooldown: "%p%You must wait %s%%remaining==S% milliseconds%p% before consuming another life!" # %remaining==time%
-  max: "%p%You already have the maximum amount of lives (%s%%max%%p%)!" # %max%
+  cooldown: "&c ⏳ %p%You must wait %s%%remaining==S% milliseconds%p% before consuming another life!" # %remaining==time%
+  max: "&c ✘%p%You already have the maximum amount of lives (%s%%max%%p%)!" # %max%
 
 get: # %lives%
   self: "%prefix%You have %s%%lives%%p% lives@@%p%%command%@@%command%"
   other: "%prefix%%s%%target%%p% has %s%%lives%%p% lives@@%p%%command%@@%command%" # %target%
 
 set: # %amount%
-  self: "%prefix%Set your lives to %s%%lives%@@%p%%command%@@%command%" # %lives%
-  other: "%prefix%Set %s%%target%%p%'s lives to %s%%lives%@@%p%%command%@@%command%" # %lives%, %target%
+  self: "%prefix%&a ✔ &eSet your lives to %s%%lives%@@%p%%command%@@%command%" # %lives%
+  other: "%prefix%&a ✔ &eSet %s%%target%%p%'s lives to %s%%lives%@@%p%%command%@@%command%" # %lives%, %target%
 
   min: "%prefix%%se%%amount%%pe% is below the minimum amount of lives (%se%%min%%pe%)!@@%pe%%command%@@%command%" # %target%, %min%, %max%
   max: "%prefix%%se%%amount%%pe% is above the maximum amount of lives (%se%%max%%pe%)!@@%pe%%command%@@%command%" # %target%, %min%, %max%
@@ -73,21 +74,21 @@ add: # %amount%
   max: "%prefix%%pe%Adding %se%%amount%%pe% lives would cause %se%%target%%pe% to exceed the maximum amount of lives (%se%%max%%pe%)!@@%pe%%command%@@%command%" # %target%, %min%, %max%
 
 remove: # %amount%
-  self: "%prefix%Removed %s%%amount%%p% lives from yourself, you now have %s%%lives%@@%p%%command%@@%command%" # %lives%
-  other: "%prefix%Removed %s%%amount%%p% lives from %s%%target%%p%, they now have %s%%lives%@@%p%%command%@@%command%" # %lives%, %target%
+  self: "%prefix%&a ✔ &eRemoved %s%%amount%%p% lives from yourself, you now have %s%%lives%@@%p%%command%@@%command%" # %lives%
+  other: "%prefix%&a ✔ &eRemoved %s%%amount%%p% lives from %s%%target%%p%, they now have %s%%lives%@@%p%%command%@@%command%" # %lives%, %target%
 
   min: "%prefix%%pe%Removing %se%%amount%%pe% lives would cause %se%%target%%pe% to fall below the minimum amount of lives (%se%%min%%pe%)!@@%pe%%command%@@%command%" # %target%, %min%, %max%
 
 give:
-  player: "%prefix%Gave %s%%amount%%p% lives to %s%%target%%p%, you now have %s%%playerlives%%p% lives and they have %s%%targetlives%%p% lives@@%p%%command%@@%command%" # %player%, %target%, %playerlives%, %targetlives%, %amount%
-  target: "%prefix%You were given %s%%amount%%p% lives by %s%%player%%p%, you now have %s%%targetlives%%p% lives and they have %s%%playerlives%%p% lives@@%p%%command%@@%command%" # %player%, %target%, %playerlives%, %targetlives%, %amount%
+  player: "%prefix%&a ✔ &eGave %s%%amount%%p% lives to %s%%target%%p%, you now have %s%%playerlives%%p% lives and they have %s%%targetlives%%p% lives@@%p%%command%@@%command%" # %player%, %target%, %playerlives%, %targetlives%, %amount%
+  target: "%prefix%&a ✔ &eYou were given %s%%amount%%p% lives by %s%%player%%p%, you now have %s%%targetlives%%p% lives and they have %s%%playerlives%%p% lives@@%p%%command%@@%command%" # %player%, %target%, %playerlives%, %targetlives%, %amount%
 
-  self: "%prefix%%pe%You can't give lives to yourself!@@%pe%%command%@@%command%"
+  self: "%prefix%&a ✔ &e%pe%You can't give lives to yourself!@@%pe%%command%@@%command%"
   last-life: "%prefix%%peYou can't give away your last life!@@%pe%%command%@@%command%"
 
 withdraw:
-  self: "%prefix%Withdrew %s%%amount%%p% lives@@%p%%command%@@%command%" # %amount%
-  other: "%prefix%Withdrew %s%%amount%%p% lives from %s%%target%%p%@@%p%%command%@@%command%" # %amount%, %target%
+  self: "%prefix%&a ✔ &eWithdrew %s%%amount%%p% lives@@%p%%command%@@%command%" # %amount%
+  other: "%prefix%&a ✔ &eWithdrew %s%%amount%%p% lives from %s%%target%%p%@@%p%%command%@@%command%" # %amount%, %target%
 
   min: "%prefix%%pe%Withdrawing %se%%amount%%pe% would cause %se%%target%%pe% to fall below the minimum amount of lives (%se%%min%%pe%)!@@%pe%%command%@@%command%" # %amount%, %target%, %min%
   recipe-not-set: "%prefix%%pe%The recipe for withdrawing lives has not been set!@@%pe%%command%@@%command%"
