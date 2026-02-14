@@ -12,6 +12,8 @@ import xyz.srnyx.annoyingapi.AnnoyingPlugin;
 import xyz.srnyx.annoyingapi.data.ItemData;
 import xyz.srnyx.annoyingapi.file.AnnoyingResource;
 import xyz.srnyx.annoyingapi.libs.javautilities.manipulation.Mapper;
+import xyz.srnyx.annoyingapi.reflection.org.bukkit.RefGameRule;
+import xyz.srnyx.annoyingapi.reflection.org.bukkit.RefWorld;
 
 import xyz.srnyx.limitedlives.LimitedLives;
 import xyz.srnyx.limitedlives.managers.player.PlayerManager;
@@ -62,12 +64,17 @@ public class LimitedConfig {
 
         public KeepInventory() {
             // Disable keepInventory in worlds where it is enabled
-            if (enabled) Bukkit.getWorlds().stream()
-                    .filter(world -> world.getGameRuleValue("keepInventory").equals("true"))
-                    .forEach(world -> {
-                        AnnoyingPlugin.log(Level.WARNING, "keepInventory is enabled in " + world.getName() + "! The plugin is disabling it to ensure the keep-inventory feature works properly");
-                        world.setGameRuleValue("keepInventory", "false");
-                    });
+            if (enabled) {
+                Bukkit.getWorlds().stream()
+                        .filter(world -> {
+                            final String value = RefWorld.getGameRuleValue(world, "keepInventory", RefGameRule.GAME_RULE_KEEP_INVENTORY);
+                            return value != null && value.equalsIgnoreCase("true");
+                        })
+                        .forEach(world -> {
+                            AnnoyingPlugin.log(Level.WARNING, "keep_inventory is enabled in " + world.getName() + "! The plugin is disabling it to ensure the keep-inventory feature works properly");
+                            RefWorld.setGameRuleValue(world, "keepInventory", RefGameRule.GAME_RULE_KEEP_INVENTORY, false);
+                        });
+            }
         }
 
         public class Actions {
