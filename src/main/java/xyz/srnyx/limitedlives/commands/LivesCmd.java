@@ -15,7 +15,6 @@ import org.jetbrains.annotations.Nullable;
 import xyz.srnyx.annoyingapi.AnnoyingPlugin;
 import xyz.srnyx.annoyingapi.command.AnnoyingCommand;
 import xyz.srnyx.annoyingapi.command.AnnoyingSender;
-import xyz.srnyx.annoyingapi.command.selector.Selector;
 import xyz.srnyx.annoyingapi.data.EntityData;
 import xyz.srnyx.annoyingapi.data.StringData;
 import xyz.srnyx.annoyingapi.libs.javautilities.FileUtility;
@@ -366,7 +365,7 @@ public class LivesCmd extends AnnoyingCommand {
             }
             // get
             if (sender.argEquals(0, "get")) {
-                if (cmdSender.hasPermission("limitedlives.get.other")) return Selector.addKeys(BukkitUtility.getOnlinePlayerNames(), OfflinePlayer.class);
+                if (cmdSender.hasPermission("limitedlives.get.other")) return plugin.selectorManager.withKeys(BukkitUtility.getOnlinePlayerNames(), OfflinePlayer.class);
                 if (cmdSender.hasPermission("limitedlives.get.self")) return Collections.singleton(cmdSender.getName());
                 return null;
             }
@@ -379,7 +378,7 @@ public class LivesCmd extends AnnoyingCommand {
         if (length == 3) {
             final String actionLower = sender.getArgumentOptional(0).map(String::toLowerCase).orElse(null);
             if (actionLower == null || actionLower.equals("get")) return null;
-            if (cmdSender.hasPermission("limitedlives." + actionLower + ".other")) return Selector.addKeys(BukkitUtility.getOnlinePlayerNames(), OfflinePlayer.class);
+            if (cmdSender.hasPermission("limitedlives." + actionLower + ".other")) return plugin.selectorManager.withKeys(BukkitUtility.getOnlinePlayerNames(), OfflinePlayer.class);
             if (cmdSender.hasPermission("limitedlives." + actionLower + ".self")) return Collections.singleton(cmdSender.getName());
         }
 

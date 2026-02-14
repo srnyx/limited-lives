@@ -24,6 +24,13 @@ commands:
     permission: limitedlives.reload
 
 permissions:
+  # Other
+  limitedlives.bypass:
+    description: "Player will bypass the lives system (i.e. infinite lives)"
+    default: false
+  limitedlives.max.#:
+    description: Gives the player their own specific max lives
+    default: false
   # Commands
   limitedlives.reload:
     description: Allows the player to use /lifereload
@@ -51,10 +58,3 @@ permissions:
     description: Allows the player to use /lives withdraw on others
   limitedlives.give:
     description: Allows the player to use /lives give
-  # Other
-  limitedlives.bypass:
-    description: "Player will bypass the lives system (i.e. infinite lives)"
-    default: false
-  limitedlives.max.#:
-    description: Gives the player their own specific max lives
-    default: false
