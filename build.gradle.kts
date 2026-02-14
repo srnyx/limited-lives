@@ -16,7 +16,7 @@ spigotAPI(config = DependencyConfig("1.8.8"))
 setupAnnoyingAPI(
     javaSetupConfig = JavaSetupConfig(
         "xyz.srnyx",
-        "4.2.0",
+        "4.2.1",
         "Each player has a limited number of lives. If you die, you are punished"),
     annoyingAPIConfig = DependencyConfig("7d2520c0fa"))
 
