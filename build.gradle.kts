@@ -8,7 +8,7 @@ import xyz.srnyx.gradlegalaxy.utility.spigotAPI
 
 plugins {
     java
-    id("xyz.srnyx.gradle-galaxy") version "2.0.2"
+    id("xyz.srnyx.gradle-galaxy") version "2.1.0"
     id("com.gradleup.shadow") version "8.3.9"
 }
 
@@ -18,10 +18,10 @@ setupAnnoyingAPI(
         "xyz.srnyx",
         "4.2.1",
         "Each player has a limited number of lives. If you die, you are punished"),
-    annoyingAPIConfig = DependencyConfig("7d2520c0fa"))
+    annoyingAPIConfig = DependencyConfig("5ee6443"))
 
 repository(Repository.PLACEHOLDER_API, Repository.ENGINE_HUB)
 dependencies {
-    compileOnly("me.clip", "placeholderapi", "2.11.6")
-    compileOnly("com.sk89q.worldguard", "worldguard-bukkit", "7.0.0")
+    compileOnly("me.clip:placeholderapi:2.12.2")
+    compileOnly("com.sk89q.worldguard:worldguard-bukkit:7.0.0")
 }
