@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
@@ -228,9 +229,10 @@ public class LivesCmd extends AnnoyingCommand {
             }
 
             // Get target and player
-            final List<OfflinePlayer> targets = sender.getSelector(2, OfflinePlayer.class)
+            final List<OfflinePlayer> selectorTargets = sender.getSelector(2, OfflinePlayer.class)
                     .orElseFlatSingle(BukkitUtility::getOfflinePlayer);
-            if (targets == null) return;
+            if (selectorTargets == null) return;
+            final List<OfflinePlayer> targets = new ArrayList<>(selectorTargets);
 
             // Remove player from targets if present, can't give lives to self
             final Player player = sender.getPlayer();
@@ -369,7 +371,8 @@ public class LivesCmd extends AnnoyingCommand {
     @Override @Nullable
     public Collection<String> onTabComplete(@NotNull AnnoyingSender sender) {
         // Check if commands enabled
-        if (!plugin.config.worldsBlacklist.isWorldEnabled(sender.getPlayer().getWorld(), Feature.COMMANDS)) return null;
+        final Location location = sender.getLocationOfSender();
+        if (location != null && !plugin.config.worldsBlacklist.isWorldEnabled(location.getWorld(), Feature.COMMANDS)) return null;
         final String[] args = sender.args;
         final int length = args.length;
 
@@ -385,7 +388,7 @@ public class LivesCmd extends AnnoyingCommand {
             }
             // get
             if (sender.argEquals(0, "get")) {
-                if (cmdSender.hasPermission("limitedlives.get.other")) return plugin.selectorManager.withKeys(BukkitUtility.getOnlinePlayerNames(), OfflinePlayer.class);
+                if (cmdSender.hasPermission("limitedlives.get.other")) return sender.withSelectorKeys(BukkitUtility.getOnlinePlayerNames(), OfflinePlayer.class);
                 if (cmdSender.hasPermission("limitedlives.get.self")) return Collections.singleton(cmdSender.getName());
                 return null;
             }
@@ -398,7 +401,7 @@ public class LivesCmd extends AnnoyingCommand {
         if (length == 3) {
             final String actionLower = sender.getArgumentOptional(0).map(String::toLowerCase).orElse(null);
             if (actionLower == null || actionLower.equals("get")) return null;
-            if (cmdSender.hasPermission("limitedlives." + actionLower + ".other")) return plugin.selectorManager.withKeys(BukkitUtility.getOnlinePlayerNames(), OfflinePlayer.class);
+            if (cmdSender.hasPermission("limitedlives." + actionLower + ".other")) return sender.withSelectorKeys(BukkitUtility.getOnlinePlayerNames(), OfflinePlayer.class);
             if (cmdSender.hasPermission("limitedlives." + actionLower + ".self")) return Collections.singleton(cmdSender.getName());
         }
 
