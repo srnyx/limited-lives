@@ -18,7 +18,7 @@ setupAnnoyingAPI(
         "xyz.srnyx",
         "4.2.2",
         "Each player has a limited number of lives. If you die, you are punished"),
-    annoyingAPIConfig = DependencyConfig("8b8344d"))
+    annoyingAPIConfig = DependencyConfig("5.2.1"))
 
 repository(Repository.PLACEHOLDER_API, Repository.ENGINE_HUB)
 dependencies {
