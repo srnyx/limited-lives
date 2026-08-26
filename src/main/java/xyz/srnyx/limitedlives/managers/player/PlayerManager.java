@@ -67,14 +67,14 @@ public class PlayerManager {
     }
 
     public long getGraceLeft() {
-        if (!plugin.config.gracePeriod.enabled) return 0;
+        if (!plugin.config.grace_period.enabled) return 0;
         final String graceStart = data.get(GRACE_START_KEY);
         if (graceStart == null) return 0;
 
         // Calculate
         final long graceLeft;
         try {
-            graceLeft = plugin.config.gracePeriod.duration.toMillis() - (System.currentTimeMillis() - Long.parseLong(graceStart));
+            graceLeft = plugin.config.grace_period.duration.toMillis() - (System.currentTimeMillis() - Long.parseLong(graceStart));
         } catch (final NumberFormatException e) {
             AnnoyingPlugin.log(Level.WARNING, "&cRemoved invalid " + GRACE_START_KEY + " value for &4" + offline.getName() + "&c: &4" + graceStart, e);
             data.remove(GRACE_START_KEY);
@@ -131,7 +131,7 @@ public class PlayerManager {
     private void revive() {
         data.remove(DEAD_KEY);
         // Start grace period
-        if (plugin.config.gracePeriod.triggers.contains(GracePeriodTrigger.REVIVE)) data.set(GRACE_START_KEY, System.currentTimeMillis());
+        if (plugin.config.grace_period.triggers.contains(GracePeriodTrigger.REVIVE)) data.set(GRACE_START_KEY, System.currentTimeMillis());
         // Dispatch revive commands
         dispatchCommands(plugin.config.commands.revive, null);
     }

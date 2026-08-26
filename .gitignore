@@ -4,4 +4,8 @@
 # Gradle
 .gradle/
 build/
+run/
 bin/
+
+# Misc
+.env

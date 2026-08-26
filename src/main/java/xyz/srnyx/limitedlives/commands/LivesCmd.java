@@ -3,26 +3,21 @@ package xyz.srnyx.limitedlives.commands;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
 import xyz.srnyx.annoyingapi.AnnoyingPlugin;
-import xyz.srnyx.annoyingapi.command.AnnoyingCommand;
 import xyz.srnyx.annoyingapi.command.AnnoyingSender;
 import xyz.srnyx.annoyingapi.data.EntityData;
 import xyz.srnyx.annoyingapi.data.StringData;
 import xyz.srnyx.annoyingapi.libs.javautilities.FileUtility;
 import xyz.srnyx.annoyingapi.libs.javautilities.manipulation.Mapper;
-import xyz.srnyx.annoyingapi.message.AnnoyingMessage;
+import xyz.srnyx.annoyingapi.message.json.message.JsonChatMessage;
 import xyz.srnyx.annoyingapi.utility.BukkitUtility;
-
 import xyz.srnyx.limitedlives.LimitedLives;
 import xyz.srnyx.limitedlives.config.Feature;
 import xyz.srnyx.limitedlives.managers.player.PlayerManager;
@@ -35,18 +30,11 @@ import java.util.*;
 import java.util.logging.Level;
 
 
-public class LivesCmd extends AnnoyingCommand {
+public class LivesCmd extends xyz.srnyx.limitedlives.commands.generated.LivesCmdGen {
     @NotNull private static final Gson GSON = new Gson();
 
-    @NotNull private final LimitedLives plugin;
-
     public LivesCmd(@NotNull LimitedLives plugin) {
-        this.plugin = plugin;
-    }
-
-    @Override @NotNull
-    public LimitedLives getAnnoyingPlugin() {
-        return plugin;
+        super(plugin);
     }
 
     @Override
@@ -54,8 +42,8 @@ public class LivesCmd extends AnnoyingCommand {
         // Check if commands enabled
         if (sender.isPlayer) {
             final World world = sender.getPlayer().getWorld();
-            if (!plugin.config.worldsBlacklist.isWorldEnabled(world, Feature.COMMANDS)) {
-                new AnnoyingMessage(plugin, "feature-disabled")
+            if (!plugin.config.worlds_blacklist.isWorldEnabled(world, Feature.COMMANDS)) {
+                plugin.getMessages().get().feature_disabled.newMessage()
                         .replace("%feature%", Feature.COMMANDS)
                         .replace("%world%", world.getName())
                         .send(sender);
@@ -66,7 +54,7 @@ public class LivesCmd extends AnnoyingCommand {
 
         // No arguments, get
         if (length == 0 || (length == 1 && sender.argEquals(0, "get"))) {
-            if (sender.checkPlayer() && sender.checkPermission("limitedlives.get.self")) new AnnoyingMessage(plugin, "get.self")
+            if (sender.checkPlayer() && sender.checkPermission("limitedlives.get.self")) plugin.getMessages().get().get.self.newMessage()
                     .replace("%lives%", new PlayerManager(plugin, sender.getPlayer()).getLives())
                     .send(sender);
             return;
@@ -130,7 +118,7 @@ public class LivesCmd extends AnnoyingCommand {
                 succeeded++;
             }
 
-            new AnnoyingMessage(plugin, "convert")
+            plugin.getMessages().get().convert.newMessage()
                     .replace("%source%", "HardcoreLivesPlugin")
                     .replace("%succeeded%", succeeded)
                     .replace("%failed%", failed)
@@ -144,7 +132,7 @@ public class LivesCmd extends AnnoyingCommand {
             final List<OfflinePlayer> players = sender.getSelector(1, OfflinePlayer.class)
                     .orElseFlatSingle(BukkitUtility::getOfflinePlayer);
             if (players != null) for (final OfflinePlayer player : players) {
-                new AnnoyingMessage(plugin, "get.other")
+                plugin.getMessages().get().get.other.newMessage()
                         .replace("%target%", player.getName())
                         .replace("%lives%", new PlayerManager(plugin, player).getLives())
                         .send(sender);
@@ -183,7 +171,7 @@ public class LivesCmd extends AnnoyingCommand {
                     // withdraw <lives>
                     case "withdraw":
                         if (lives <= 0) {
-                            new AnnoyingMessage(plugin, "withdraw.negative").send(sender);
+                            plugin.getMessages().get().withdraw.negative.newMessage().send(sender);
                             return;
                         }
                         final int currentLives = manager.getLives();
@@ -196,7 +184,7 @@ public class LivesCmd extends AnnoyingCommand {
                         return;
                 }
             } catch (final ActionException e) {
-                new AnnoyingMessage(plugin, action + "." + e.getMessageKey())
+                plugin.getMessages().get().getAs(action + "." + e.getMessageKey(), JsonChatMessage.class).newMessage()
                         .replace("%amount%", lives)
                         .replace("%target%", playerName)
                         .replace("%min%", plugin.config.lives.min)
@@ -206,7 +194,7 @@ public class LivesCmd extends AnnoyingCommand {
             }
 
             // Send message
-            new AnnoyingMessage(plugin, action + ".self")
+            plugin.getMessages().get().getAs(action + "." + "self", JsonChatMessage.class).newMessage()
                     .replace("%amount%", lives)
                     .replace("%lives%", newLives)
                     .send(sender);
@@ -224,7 +212,7 @@ public class LivesCmd extends AnnoyingCommand {
             if (!sender.checkPlayer() || !sender.checkPermission("limitedlives.give")) return;
             // Inputted negative number
             if (lives <= 0) {
-                new AnnoyingMessage(plugin, "give.negative").send(sender);
+                plugin.getMessages().get().give.negative.newMessage().send(sender);
                 return;
             }
 
@@ -241,7 +229,7 @@ public class LivesCmd extends AnnoyingCommand {
 
             // No valid targets
             if (targets.isEmpty()) {
-                new AnnoyingMessage(plugin, "give.self").send(sender);
+                plugin.getMessages().get().give.self.newMessage().send(sender);
                 return;
             }
             final PlayerManager playerManager = new PlayerManager(plugin, player);
@@ -249,7 +237,7 @@ public class LivesCmd extends AnnoyingCommand {
             // Check if player has +1 than min lives
             final int playerLives = playerManager.getLives();
             if (playerLives <= plugin.config.lives.min + 1) {
-                new AnnoyingMessage(plugin, "give.last-life").send(sender);
+                plugin.getMessages().get().give.last_life.newMessage().send(sender);
                 return;
             }
 
@@ -257,7 +245,7 @@ public class LivesCmd extends AnnoyingCommand {
             final int maxTotalToGive = playerLives - (plugin.config.lives.min + 1);
             if (lives * targets.size() > maxTotalToGive) lives = maxTotalToGive / targets.size();
             if (lives <= 0) {
-                new AnnoyingMessage(plugin, "give.last-life").send(sender);
+                plugin.getMessages().get().give.last_life.newMessage().send(sender);
                 return;
             }
 
@@ -285,14 +273,14 @@ public class LivesCmd extends AnnoyingCommand {
 
                 // Send messages
                 final String targetName = target.getName();
-                new AnnoyingMessage(plugin, "give.player")
+                plugin.getMessages().get().give.player.newMessage()
                         .replace("%player%", playerName)
                         .replace("%target%", targetName)
                         .replace("%playerlives%", newPlayerLives)
                         .replace("%targetlives%", newTargetLives)
                         .replace("%amount%", targetLivesToGive)
                         .send(sender);
-                if (target instanceof Player) new AnnoyingMessage(plugin, "give.target")
+                if (target instanceof Player) plugin.getMessages().get().give.target.newMessage()
                         .replace("%player%", playerName)
                         .replace("%target%", targetName)
                         .replace("%playerlives%", newPlayerLives)
@@ -335,7 +323,7 @@ public class LivesCmd extends AnnoyingCommand {
                     case "withdraw":
                         if (!sender.checkPlayer()) return;
                         if (amount <= 0) {
-                            new AnnoyingMessage(plugin, "withdraw.negative").send(sender);
+                            plugin.getMessages().get().withdraw.negative.newMessage().send(sender);
                             return;
                         }
                         final int currentLives = manager.getLives();
@@ -348,7 +336,7 @@ public class LivesCmd extends AnnoyingCommand {
                         return;
                 }
             } catch (final ActionException e) {
-                new AnnoyingMessage(plugin, action + "." + e.getMessageKey())
+                plugin.getMessages().get().getAs(action + "." + e.getMessageKey(), JsonChatMessage.class).newMessage()
                         .replace("%amount%", amount)
                         .replace("%target%", targetName)
                         .replace("%min%", plugin.config.lives.min)
@@ -358,7 +346,7 @@ public class LivesCmd extends AnnoyingCommand {
             }
 
             // Send message
-            new AnnoyingMessage(plugin, action + ".other")
+            plugin.getMessages().get().getAs(action + ".other", JsonChatMessage.class).newMessage()
                     .replace("%amount%", amount)
                     .replace("%target%", targetName)
                     .replace("%lives%", newLives)
@@ -372,7 +360,7 @@ public class LivesCmd extends AnnoyingCommand {
     public Collection<String> onTabComplete(@NotNull AnnoyingSender sender) {
         // Check if commands enabled
         final Location location = sender.getLocationOfSender();
-        if (location != null && !plugin.config.worldsBlacklist.isWorldEnabled(location.getWorld(), Feature.COMMANDS)) return null;
+        if (location != null && !plugin.config.worlds_blacklist.isWorldEnabled(location.getWorld(), Feature.COMMANDS)) return null;
         final String[] args = sender.args;
         final int length = args.length;
 

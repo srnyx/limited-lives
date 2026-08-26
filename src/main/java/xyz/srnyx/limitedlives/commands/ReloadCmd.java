@@ -1,39 +1,18 @@
 package xyz.srnyx.limitedlives.commands;
 
 import org.jetbrains.annotations.NotNull;
-
-import xyz.srnyx.annoyingapi.command.AnnoyingCommand;
 import xyz.srnyx.annoyingapi.command.AnnoyingSender;
-import xyz.srnyx.annoyingapi.message.AnnoyingMessage;
-
 import xyz.srnyx.limitedlives.LimitedLives;
 
 
-public class ReloadCmd extends AnnoyingCommand {
-    @NotNull private final LimitedLives plugin;
-
+public class ReloadCmd extends xyz.srnyx.limitedlives.commands.generated.LifereloadCmdGen {
     public ReloadCmd(@NotNull LimitedLives plugin) {
-        this.plugin = plugin;
-    }
-
-    @Override @NotNull
-    public LimitedLives getAnnoyingPlugin() {
-        return plugin;
-    }
-
-    @Override @NotNull
-    public String getName() {
-        return "lifereload";
-    }
-
-    @Override @NotNull
-    public String getPermission() {
-        return "limitedlives.reload";
+        super(plugin);
     }
 
     @Override
     public void onCommand(@NotNull AnnoyingSender sender) {
         plugin.reloadPlugin();
-        new AnnoyingMessage(plugin, "reload").send(sender);
+        plugin.getMessages().get().reload.newMessage().send(sender);
     }
 }

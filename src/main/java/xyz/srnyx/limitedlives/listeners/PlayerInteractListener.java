@@ -6,15 +6,12 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
-
 import org.jetbrains.annotations.NotNull;
-
 import xyz.srnyx.annoyingapi.AnnoyingListener;
 import xyz.srnyx.annoyingapi.cooldown.AnnoyingCooldown;
 import xyz.srnyx.annoyingapi.data.ItemData;
-import xyz.srnyx.annoyingapi.message.AnnoyingMessage;
 import xyz.srnyx.annoyingapi.message.DefaultReplaceType;
-
+import xyz.srnyx.annoyingapi.parents.Registrable;
 import xyz.srnyx.limitedlives.LimitedLives;
 import xyz.srnyx.limitedlives.config.CraftingTrigger;
 import xyz.srnyx.limitedlives.config.Feature;
@@ -22,6 +19,7 @@ import xyz.srnyx.limitedlives.managers.player.PlayerManager;
 import xyz.srnyx.limitedlives.managers.player.exception.MoreThanMaxLives;
 
 
+@Registrable.Ignore
 public class PlayerInteractListener extends AnnoyingListener {
     @NotNull private static final String COOLDOWN_KEY = "use_item";
 
@@ -57,8 +55,8 @@ public class PlayerInteractListener extends AnnoyingListener {
 
         // LIFE_USE disabled in world
         final World world = player.getWorld();
-        if (!plugin.config.worldsBlacklist.isWorldEnabled(world, Feature.LIFE_USE)) {
-            new AnnoyingMessage(plugin, "feature-disabled")
+        if (!plugin.config.worlds_blacklist.isWorldEnabled(world, Feature.LIFE_USE)) {
+            plugin.getMessages().get().feature_disabled.newMessage()
                     .replace("%feature%", Feature.LIFE_USE)
                     .replace("%world%", world.getName())
                     .send(player);
@@ -68,7 +66,7 @@ public class PlayerInteractListener extends AnnoyingListener {
         // Check cooldown
         final AnnoyingCooldown cooldown = plugin.cooldownManager.getCooldownElseNew(player.getUniqueId(), COOLDOWN_KEY);
         if (cooldown.isOnCooldownStart(plugin.config.obtaining.crafting.cooldown.toMillis())) {
-            new AnnoyingMessage(plugin, "eat.cooldown")
+            plugin.getMessages().get().eat.cooldown.newMessage()
                     .replace("%remaining%", cooldown.getRemaining(), DefaultReplaceType.TIME)
                     .send(player);
             return;
@@ -79,11 +77,11 @@ public class PlayerInteractListener extends AnnoyingListener {
             item.setAmount(item.getAmount() - 1);
 
             // Send message and add lives
-            new AnnoyingMessage(plugin, "eat.success")
+            plugin.getMessages().get().eat.success.newMessage()
                     .replace("%lives%", new PlayerManager(plugin, player).addLives(plugin.config.obtaining.crafting.amount))
                     .send(player);
         } catch (final MoreThanMaxLives e) {
-            new AnnoyingMessage(plugin, "eat.max")
+            plugin.getMessages().get().eat.max.newMessage()
                     .replace("%max%", plugin.config.lives.max)
                     .send(player);
         }

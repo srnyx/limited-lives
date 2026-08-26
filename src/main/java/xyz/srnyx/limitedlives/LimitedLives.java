@@ -1,22 +1,20 @@
 package xyz.srnyx.limitedlives;
 
 import org.bukkit.Bukkit;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
 import xyz.srnyx.annoyingapi.AnnoyingPlugin;
-import xyz.srnyx.annoyingapi.PluginPlatform;
-
 import xyz.srnyx.limitedlives.config.CraftingTrigger;
 import xyz.srnyx.limitedlives.config.LimitedConfig;
+import xyz.srnyx.limitedlives.config.serdes.DamageCauseWrapperSerializer;
 import xyz.srnyx.limitedlives.listeners.CraftListener;
 import xyz.srnyx.limitedlives.listeners.PlayerInteractListener;
 import xyz.srnyx.limitedlives.listeners.PlayerItemConsumeListener;
-import xyz.srnyx.limitedlives.listeners.PlayerListener;
 import xyz.srnyx.limitedlives.managers.PlaceholderManager;
 import xyz.srnyx.limitedlives.managers.WorldGuardManager;
 import xyz.srnyx.limitedlives.managers.player.PlayerManager;
+import xyz.srnyx.limitedlives.messages.LLMessagesProvider;
+import xyz.srnyx.limitedlives.stats.FastStats;
 
 import java.io.File;
 import java.util.logging.Level;
@@ -31,21 +29,14 @@ public class LimitedLives extends AnnoyingPlugin {
 
     public LimitedLives() {
         options
-                .pluginOptions(pluginOptions -> pluginOptions.updatePlatforms(new PluginPlatform.Multi(
-                        PluginPlatform.modrinth("LvTKDASD"),
-                        PluginPlatform.hangar(this),
-                        PluginPlatform.spigot("109078"))))
-                .bStatsOptions(bStatsOptions -> bStatsOptions.id(18304))
-                .dataOptions(dataOptions -> dataOptions
-                        .enabled(true)
-                        .entityDataColumns(
-                                PlayerManager.LIVES_KEY,
-                                PlayerManager.DEAD_KEY,
-                                PlayerManager.GRACE_START_KEY))
-                .registrationOptions
-                .toRegister(new PlayerListener(this))
-                .papiExpansionToRegister(() -> new PlaceholderManager(this))
-                .automaticRegistration.packages("xyz.srnyx.limitedlives.commands");
+                .statsOptions(statsOptions -> statsOptions
+                        .bStats(bStats -> bStats.id(18304))
+                        .fastStats(fastStats -> fastStats.loader(FastStats.class)))
+                .dataOptions(dataOptions -> dataOptions.entityDataColumns(
+                        PlayerManager.LIVES_KEY,
+                        PlayerManager.DEAD_KEY,
+                        PlayerManager.GRACE_START_KEY))
+                .registrationOptions.papiExpansionToRegister(() -> new PlaceholderManager(this));
 
         // Register WorldGuardManager (needs to happen on load before WorldGuard enables)
         WorldGuardManager worldGuardManager = null;
@@ -57,10 +48,23 @@ public class LimitedLives extends AnnoyingPlugin {
         worldGuard = worldGuardManager;
     }
 
+    @Override @NotNull
+    public LLMessagesProvider getMessages() {
+        return (LLMessagesProvider) super.getMessages();
+    }
+
+    @Override
+    public void load() {
+        config = configLoader.build(build -> build
+                .config(new LimitedConfig(this))
+                .configure(configure -> configure.serdes(new DamageCauseWrapperSerializer())));
+    }
+
     @Override
     public void enable() {
-        reload();
-        if (config.obtaining.crafting.recipe != null) try {
+        setup();
+
+        if (config.obtaining.crafting.enabled && config.obtaining.crafting.recipe != null) try {
             Bukkit.addRecipe(config.obtaining.crafting.recipe);
         } catch (final Exception e) {
             log(Level.WARNING, "&cFailed to add crafting recipe!", e);
@@ -69,8 +73,11 @@ public class LimitedLives extends AnnoyingPlugin {
 
     @Override
     public void reload() {
-        // Load config
-        config = new LimitedConfig(this);
+        config.reload();
+        setup();
+    }
+
+    private void setup() {
         // Store WorldGuard RegionContainer (needs to happen on enable after WorldGuard enables)
         if (worldGuard != null) worldGuard.storeRegionContainer();
         // Detect very old data (data/data.yml, 2.0.1 and lower)

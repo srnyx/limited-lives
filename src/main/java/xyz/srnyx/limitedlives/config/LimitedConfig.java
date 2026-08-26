@@ -1,188 +1,338 @@
 package xyz.srnyx.limitedlives.config;
 
+import com.cryptomorin.xseries.XGameRule;
+import com.cryptomorin.xseries.XMaterial;
+import eu.okaeri.configs.annotation.Comment;
+import eu.okaeri.configs.annotation.CustomKey;
+import eu.okaeri.configs.annotation.Header;
+import eu.okaeri.configs.annotation.Serdes;
+import eu.okaeri.configs.serdes.commons.duration.DurationSpec;
+import eu.okaeri.validator.annotation.NotNull;
+import eu.okaeri.validator.annotation.Nullable;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import org.bukkit.inventory.meta.ItemMeta;
 import xyz.srnyx.annoyingapi.AnnoyingPlugin;
-import xyz.srnyx.annoyingapi.data.ItemData;
-import xyz.srnyx.annoyingapi.file.AnnoyingResource;
-import xyz.srnyx.annoyingapi.libs.javautilities.manipulation.Mapper;
-import xyz.srnyx.annoyingapi.reflection.org.bukkit.RefGameRule;
-import xyz.srnyx.annoyingapi.reflection.org.bukkit.RefWorld;
-
+import xyz.srnyx.annoyingapi.ServerSoftware;
+import xyz.srnyx.annoyingapi.file.okaeri.RootConfig;
+import xyz.srnyx.annoyingapi.file.okaeri.SubConfig;
+import xyz.srnyx.annoyingapi.file.okaeri.serdes.recipe.spec.RecipeSpec;
+import xyz.srnyx.annoyingapi.reflection.org.bukkit.inventory.RefShapedRecipe;
+import xyz.srnyx.annoyingapi.stats.Stat;
+import xyz.srnyx.annoyingapi.utility.BukkitUtility;
 import xyz.srnyx.limitedlives.LimitedLives;
-import xyz.srnyx.limitedlives.managers.player.PlayerManager;
+import xyz.srnyx.limitedlives.config.damagecause.DamageCauseWrapper;
+import xyz.srnyx.limitedlives.config.serdes.KeepInventoryActionsSerializer;
 
 import java.time.Duration;
-import java.util.*;
+import java.time.temporal.ChronoUnit;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 
 
-public class LimitedConfig {
-    @NotNull private final AnnoyingResource config;
-    @NotNull public final Lives lives;
-    @NotNull public final Set<String> deathCauses;
-    @NotNull public final KeepInventory keepInventory;
-    @NotNull public final GracePeriod gracePeriod;
-    @NotNull public final Commands commands;
-    @NotNull public final Obtaining obtaining;
-    @NotNull public final WorldsBlacklist worldsBlacklist;
+@Header("DOCUMENTATION: https://annoying-api.srnyx.com/wiki/File-objects")
+public class LimitedConfig extends RootConfig {
+    @Comment
+    @Comment
+    @Comment
+    @NotNull public Lives lives = new Lives(this);
 
-    public LimitedConfig(@NotNull LimitedLives plugin) {
-        config = new AnnoyingResource(plugin, "config.yml");
-        lives = new Lives();
-        deathCauses = getDamageCauses(config.getStringList("death-causes"));
-        keepInventory = new KeepInventory();
-        gracePeriod = new GracePeriod();
-        commands = new Commands();
-        obtaining = new Obtaining();
-        worldsBlacklist = new WorldsBlacklist();
+    @Comment
+    @Comment
+    @Comment
+    @Comment("The causes that will result in a player to losing a life, leave empty for all causes")
+    @Comment("Available causes:")
+    @Comment("- https://srnyx.com/docs/spigot/org/bukkit/event/entity/EntityDamageEvent.DamageCause.html")
+    @Comment("- PLAYER_ATTACK: Death caused by another player (PVP)")
+    @Stat
+    @NotNull public Set<DamageCauseWrapper> death_causes = Set.of();
+
+    @Comment
+    @Comment
+    @Comment
+    @Comment("A list of worlds where the plugin won't be enabled")
+    @NotNull public WorldsBlacklist worlds_blacklist = new WorldsBlacklist(this);
+
+    @Comment
+    @Comment
+    @Comment
+    @Comment("THE keep_inventory GAMERULE MUST BE SET TO false FOR THIS TO WORK (the plugin will disable it if it's enabled)!")
+    @Comment("If it isn't, some players' inventories may be permanently lost!")
+    @NotNull public KeepInventory keep_inventory = new KeepInventory(this);
+
+    @Comment
+    @Comment
+    @Comment
+    @Comment("A period of time after a player joins the server and/or is revived where they won't lose lives")
+    @NotNull public GracePeriod grace_period = new GracePeriod(this);
+
+    @Comment
+    @Comment
+    @Comment
+    @NotNull public Commands commands = new Commands(this);
+
+    @Comment
+    @Comment
+    @Comment
+    @Comment("Different ways of obtaining lives")
+    @NotNull public Obtaining obtaining;
+
+
+    @org.jetbrains.annotations.NotNull protected transient final LimitedLives plugin;
+
+    public LimitedConfig(@org.jetbrains.annotations.NotNull LimitedLives plugin) {
+        this.plugin = plugin;
+
+        this.obtaining = new Obtaining(this);
     }
 
-    @NotNull
-    private static Set<String> getDamageCauses(@NotNull List<String> collection) {
-        return collection.stream()
-                .map(String::toUpperCase)
-                .collect(Collectors.toSet());
-    }
+    @Override
+    public void onLoad() {
+        // keep_inventory enabled: disable keep_inventory in worlds where enabled
+        if (keep_inventory.enabled) Bukkit.getWorlds().stream()
+                .filter(world -> Boolean.TRUE.equals(XGameRule.KEEP_INVENTORY.getValue(world)))
+                .forEach(world -> {
+                    AnnoyingPlugin.log(Level.WARNING, "keep_inventory is enabled in " + world.getName() + "! The plugin is disabling it to ensure the keep-inventory feature works properly");
+                    XGameRule.KEEP_INVENTORY.setValue(world, false);
+                });
 
-    public class Lives {
-        public final int def = config.getInt("lives.default", 5);
-        public final int max = config.getInt("lives.max", 10);
-        public final int min = config.getInt("lives.min", 0);
-    }
-
-    public class KeepInventory {
-        public final boolean enabled = config.getBoolean("keep-inventory.enabled", false);
-        @NotNull public final Actions actions = new Actions();
-
-        public KeepInventory() {
-            // Disable keepInventory in worlds where it is enabled
-            if (enabled) {
-                Bukkit.getWorlds().stream()
-                        .filter(world -> {
-                            final String value = RefWorld.getGameRuleValue(world, "keepInventory", RefGameRule.GAME_RULE_KEEP_INVENTORY);
-                            return value != null && value.equalsIgnoreCase("true");
-                        })
-                        .forEach(world -> {
-                            AnnoyingPlugin.log(Level.WARNING, "keep_inventory is enabled in " + world.getName() + "! The plugin is disabling it to ensure the keep-inventory feature works properly");
-                            RefWorld.setGameRuleValue(world, "keepInventory", RefGameRule.GAME_RULE_KEEP_INVENTORY, false);
-                        });
-            }
-        }
-
-        public class Actions {
-            @NotNull private final KeepInventoryAction def;
-            @NotNull private final Map<Integer, KeepInventoryAction> exact = new HashMap<>();
-
-            public Actions() {
-                // def
-                def = Mapper.toEnum(config.getString("keep-inventory.actions.default"), KeepInventoryAction.class).orElse(KeepInventoryAction.KEEP);
-
-                // actions
-                final ConfigurationSection section = config.getConfigurationSection("keep-inventory.actions");
-                if (section != null) for (final String key : section.getKeys(false)) {
-                    if (key.equals("default") || key.equals("first") || key.equals("last")) continue;
-                    final int count;
-                    try {
-                        count = Integer.parseInt(key);
-                    } catch (final NumberFormatException e) {
-                        AnnoyingPlugin.log(Level.WARNING, "Invalid keep inventory action count: " + key);
-                        continue;
-                    }
-                    Mapper.toEnum(config.getString("keep-inventory.actions." + key), KeepInventoryAction.class)
-                            .ifPresent(keepInventoryAction -> exact.put(count, keepInventoryAction));
-                }
-            }
-
-            @NotNull
-            public KeepInventoryAction getAction(int deaths) {
-                final KeepInventoryAction action = exact.get(deaths);
-                return action != null ? action : def;
-            }
+        // Folia check for respawn commands
+        if (ServerSoftware.SOFTWARE.hasFolia() && !commands.punishment.respawn.isEmpty()) {
+            AnnoyingPlugin.log(Level.WARNING, "&c&lThe respawn punishment commands are not supported on Folia! &cPlease enable the " + XGameRule.KEEP_INVENTORY.name() + " gamerule and use death commands instead.\n&c&oTo disable this message, set &4&ocommands.punishment.respawn&c&o to &4&o[]&c&o in &4&oconfig.yml");
         }
     }
 
-    public class GracePeriod {
-        public final boolean enabled = config.getBoolean("grace-period.enabled", false);
-        @NotNull public final Duration duration = Duration.ofSeconds(config.getInt("grace-period.duration", 60));
-        @NotNull public final Set<GracePeriodTrigger> triggers = new HashSet<>();
-        @NotNull public final Set<String> bypassCauses = getDamageCauses(config.getStringList("grace-period.bypass-causes"));
-        @NotNull public final Set<String> disabledDamageCauses = getDamageCauses(config.getStringList("grace-period.disabled-damage-causes"));
-
-        public GracePeriod() {
-            for (final String string : config.getStringList("grace-period.triggers")) Mapper.toEnum(string, GracePeriodTrigger.class).ifPresent(triggers::add);
+    public static class Lives extends SubConfig<LimitedConfig, LimitedConfig> {
+        public Lives(@org.jetbrains.annotations.NotNull LimitedConfig config) {
+            super(config);
         }
+
+        @Comment("The amount of lives a player starts with")
+        @CustomKey("default")
+        @Stat
+        public int def = 5;
+
+        @Comment("The maximum amount of lives a player can have")
+        @Stat
+        public int max = 10;
+
+        @Comment("The amount of lives that triggers the punishment commands")
+        @Stat
+        public int min = 0;
     }
 
-    public class Commands {
-        @NotNull public final Punishment punishment = new Punishment();
-        @NotNull public final List<String> revive = config.getStringList("commands.revive");
-
-        public class Punishment {
-            @NotNull private static final String COMMANDS_PUNISHMENT_RESPAWN = "commands.punishment.respawn";
-
-            @NotNull public final List<String> death = config.getStringList("commands.punishment.death");
-            @NotNull public final List<String> respawn = config.getStringList(COMMANDS_PUNISHMENT_RESPAWN);
-
-            public Punishment() {
-                // Folia check for respawn commands
-                if (AnnoyingPlugin.FOLIA && !respawn.isEmpty()) AnnoyingPlugin.log(Level.WARNING, "&c&lThe respawn punishment commands are not supported on Folia! &cPlease enable the doImmediateRespawn gamerule and use death commands instead.\n&c&oTo disable this message, set &4&o" + COMMANDS_PUNISHMENT_RESPAWN + "&c&o to &4&o[]&c&o in &4&oconfig.yml");
-            }
-        }
-    }
-
-    public class Obtaining {
-        public final boolean stealing = config.getBoolean("obtaining.stealing", true);
-        @NotNull public final Crafting crafting = new Crafting();
-
-        public class Crafting {
-            @NotNull private static final String OBTAINING_CRAFTING_TRIGGERS = "obtaining.crafting.triggers";
-
-            public final int amount = config.getInt("obtaining.crafting.amount", 1);
-            @NotNull public final Set<CraftingTrigger> triggers = new HashSet<>();
-            @NotNull public final Duration cooldown = Duration.ofMillis(config.getLong("obtaining.crafting.cooldown", 500));
-            @Nullable public final Recipe recipe = config.getBoolean("obtaining.crafting.enabled", true) ? config.getRecipe("obtaining.crafting.recipe", item -> new ItemData(config.plugin, item).setChain(PlayerManager.ITEM_KEY, true).target, "life").orElse(null) : null;
-
-            public Crafting() {
-                if (config.isSet(OBTAINING_CRAFTING_TRIGGERS)) {
-                    for (final String string : config.getStringList(OBTAINING_CRAFTING_TRIGGERS)) Mapper.toEnum(string, CraftingTrigger.class).ifPresent(triggers::add);
-                } else {
-                    triggers.add(CraftingTrigger.CONSUME);
-                }
-            }
-        }
-    }
-
-    public class WorldsBlacklist {
-        @NotNull private static final String WORLDS_BLACKLIST_AFFECTED_FEATURES = "worlds-blacklist.affected-features";
-
-        @NotNull public final Set<String> list = config.getStringList("worlds-blacklist.list").stream()
-                .map(String::toLowerCase)
-                .collect(Collectors.toSet());
-        public final boolean actAsWhitelist = config.getBoolean("worlds-blacklist.act-as-whitelist", false);
-        private final Set<Feature> affectedFeatures = new HashSet<>();
-
-        public WorldsBlacklist() {
-            if (config.isSet(WORLDS_BLACKLIST_AFFECTED_FEATURES)) {
-                for (final String string : config.getStringList(WORLDS_BLACKLIST_AFFECTED_FEATURES)) Mapper.toEnum(string, Feature.class).ifPresent(affectedFeatures::add);
-            } else {
-                affectedFeatures.addAll(Arrays.asList(Feature.values()));
-            }
+    public static class WorldsBlacklist extends SubConfig<LimitedConfig, LimitedConfig> {
+        public WorldsBlacklist(@org.jetbrains.annotations.NotNull LimitedConfig config) {
+            super(config);
         }
 
-        public boolean isWorldEnabled(@NotNull World world, @NotNull Feature feature) {
-            final boolean inList = list.contains(world.getName().toLowerCase());
-            final boolean affectsFeature = affectedFeatures.contains(feature);
-            return actAsWhitelist
+        @Stat
+        @NotNull public Set<String> list = Collections.emptySet();
+
+        @Comment
+        @Comment("If true, the list of worlds above will act as a whitelist, meaning only those worlds will have the plugin enabled")
+        @Stat
+        public boolean act_as_whitelist = false;
+
+        @Comment
+        @Comment("The features that will be affected by the worlds blacklist/whitelist")
+        @Comment("Example: \"world_1\" is in the list and only \"LIFE_LOSS\" is specified below. If act-as-whitelist is false, players in \"world_1\" will not lose lives, but all other features will still work. If act-as-whitelist is true, players in \"world_1\" will only be affected by the \"LIFE_LOSS\" feature, and all other features will NOT work.")
+        @Comment("Available features:")
+        @Comment("- COMMANDS: The /lives commands for the plugin")
+        @Comment("- LIFE_LOSS: Players losing lives")
+        @Comment("- LIFE_USE: Players using lives (ex: right-clicking the life item)")
+        @Comment("- OBTAINING_STEALING: Gaining lives from killing players")
+        @Comment("- OBTAINING_CRAFTING: Ability to craft the life item (for using it, see LIFE_USE)")
+        @Comment("- KEEP_INVENTORY: The keep-inventory feature (so will just use the world's keepInventory gamerule setting)")
+        @Stat
+        @NotNull public Set<Feature> affected_features = Set.of(Feature.values());
+
+        public boolean isWorldEnabled(@org.jetbrains.annotations.NotNull World world, @org.jetbrains.annotations.NotNull Feature feature) {
+            final String worldName = world.getName().toLowerCase();
+            final boolean inList = list.stream()
+                    .map(String::toLowerCase)
+                    .anyMatch(listed -> listed.equals(worldName));
+            final boolean affectsFeature = affected_features.contains(feature);
+            return act_as_whitelist
                     ? inList && affectsFeature
                     : !inList || !affectsFeature;
+        }
+    }
+
+    public static class KeepInventory extends SubConfig<LimitedConfig, LimitedConfig> {
+        public KeepInventory(@org.jetbrains.annotations.NotNull LimitedConfig config) {
+            super(config);
+        }
+
+        @Comment("This will toggle this entire feature on or off")
+        @Stat
+        public boolean enabled = false;
+
+        @Comment
+        @Comment("The actions that will be taken when a player dies for the X time (death count is calculated using: max lives - current lives)")
+        @Comment("Available actions:")
+        @Comment("- KEEP: Keep the player's inventory, as if keepInventory was true")
+        @Comment("- DROP: Drop the player's inventory on the ground, as if keepInventory was false")
+        @Comment("- DESTROY: Destroy all items in the player's inventory")
+        @Comment(" ")
+        @Comment("EXAMPLE:")
+        @Comment("actions:")
+        @Comment("  default: KEEP # Default action if not caught by one below")
+        @Comment("  1: DROP # This would drop the player's inventory on their 1st death")
+        @Comment("  5: DROP # This would drop the player's inventory on their 5th death")
+        @Comment("  10: DESTROY # This would destroy the player's inventory on their 10th death")
+        @Serdes(serializer = KeepInventoryActionsSerializer.class) @Stat
+        @NotNull public KeepInventoryActions actions = new KeepInventoryActions();
+    }
+
+    public static class GracePeriod extends SubConfig<LimitedConfig, LimitedConfig> {
+        public GracePeriod(@org.jetbrains.annotations.NotNull LimitedConfig config) {
+            super(config);
+        }
+
+        public boolean enabled = false;
+
+        @Comment
+        @Comment("The duration of the grace period")
+        @DurationSpec(fallbackUnit = ChronoUnit.SECONDS)
+        @Stat
+        @NotNull public Duration duration = Duration.ofMinutes(1);
+
+        @Comment
+        @Comment("When players should be given the grace period")
+        @Comment("Available options:")
+        @Comment("- FIRST_JOIN: When a player joins the server for the first time")
+        @Comment("- JOIN: When a player joins the server (overrules FIRST_JOIN)")
+        @Comment("- REVIVE: When a player is revived")
+        @Stat
+        @NotNull public Set<GracePeriodTrigger> triggers = Set.of(
+                GracePeriodTrigger.FIRST_JOIN,
+                GracePeriodTrigger.REVIVE);
+
+        @Comment
+        @Comment("Death causes that will bypass the grace period so the player still loses a life")
+        @Comment("Available causes:")
+        @Comment("- https://srnyx.com/docs/spigot/org/bukkit/event/entity/EntityDamageEvent.DamageCause.html")
+        @Comment("- PLAYER_ATTACK: Death caused by another player (PVP)")
+        @Stat
+        @NotNull public Set<DamageCauseWrapper> bypass_causes = Set.of();
+
+        @Comment
+        @Comment("Damage causes that will be cancelled while a player is in the grace period")
+        @Comment("Available causes:")
+        @Comment("- https://srnyx.com/docs/spigot/org/bukkit/event/entity/EntityDamageEvent.DamageCause.html")
+        @Comment("- PLAYER_ATTACK: Damage caused when a player attacks another player (PVP)")
+        @Stat
+        @NotNull public Set<DamageCauseWrapper> disabled_damage_causes = Set.of();
+    }
+
+    public static class Commands extends SubConfig<LimitedConfig, LimitedConfig> {
+        public Commands(@org.jetbrains.annotations.NotNull LimitedConfig config) {
+            super(config);
+        }
+
+        @Comment("The commands that will be executed when a player loses all their lives (executed by the console).")
+        @Comment("It's best to have the do_immediate_respawn gamerule set to true and then only use death commands.")
+        @Comment("%player% - The player that lost all their lives")
+        @Comment("%killer% - The player that got the final kill on %player%. If %player% died from a non-player cause, any commands that use %killer% will be ignored")
+        @NotNull public Punishment punishment = new Punishment(this);
+
+        @Comment
+        @Comment("The commands that will be executed when a player goes from the minimum lives to above the minimum lives (executed by the console)")
+        @Comment("%player% - The player that gained lives")
+        @Stat(sizeOnly = true)
+        @NotNull public List<String> revive = List.of("gamemode survival %player%");
+
+        public static class Punishment extends SubConfig<LimitedConfig, Commands> {
+            public Punishment(@org.jetbrains.annotations.NotNull Commands commands) {
+                super(commands);
+            }
+
+            @Comment("Executed right when the player dies and/or when they lose all their lives from a command (ex: /lives remove)")
+            @Stat(sizeOnly = true)
+            @NotNull public List<String> death = List.of();
+
+            @Comment
+            @Comment("Executed when the player respawns")
+            @Comment("FOLIA: These do not work on Folia servers! Please enable the do_immediate_respawn gamerule and use death commands instead")
+            @Stat(sizeOnly = true)
+            @NotNull public List<String> respawn = List.of("gamemode spectator %player%");
+        }
+    }
+
+    public static class Obtaining extends SubConfig<LimitedConfig, LimitedConfig> {
+        public Obtaining(@org.jetbrains.annotations.NotNull LimitedConfig config) {
+            super(config);
+        }
+
+        @Comment("Whether to enable killers gaining a life when they kill a player")
+        @Stat
+        public boolean stealing = true;
+
+        @Comment
+        @Comment
+        @NotNull public Crafting crafting = new Crafting(this);
+
+        public static class Crafting extends SubConfig<LimitedConfig, Obtaining> {
+            @org.jetbrains.annotations.NotNull private static final String RECIPE_NAME = "life";
+
+
+            @Comment("Whether to enable crafting an item that can be used to gain lives")
+            @Stat
+            public boolean enabled = true;
+
+            @Comment
+            @Comment("The amount of lives that will be gained when the item is used")
+            @Stat
+            public int amount = 1;
+
+            @Comment
+            @Comment("The action that triggers the item to be used")
+            @Comment("Available options:")
+            @Comment("- CONSUME: When the item is consumed (material must be a CONSUMABLE item)")
+            @Comment("- LEFT_CLICK: When the item is left-clicked with")
+            @Comment("- RIGHT_CLICK: When the item is right-clicked with")
+            @Stat
+            @NotNull public Set<CraftingTrigger> triggers = Set.of(CraftingTrigger.CONSUME);
+
+            @Comment
+            @Comment("The cooldown before the item can be used again (only applies to LEFT_CLICK and RIGHT_CLICK triggers).")
+            @Comment("This should probably be greater than 0 to prevent accidental uses.")
+            @DurationSpec(fallbackUnit = ChronoUnit.MILLIS) @Stat
+            @NotNull public Duration cooldown = Duration.ofSeconds(1);
+
+            @Comment
+            @Comment("RECIPE (see documentation)")
+            @RecipeSpec(name = RECIPE_NAME, resultTransformer = ObtainingRecipeTransformer.class)
+            @Nullable public Recipe recipe;
+
+            public Crafting(@org.jetbrains.annotations.NotNull Obtaining obtaining) {
+                super(obtaining);
+
+                // Default recipe
+                final ItemStack result = new ItemStack(Objects.requireNonNull(XMaterial.APPLE.get()));
+                final ItemMeta meta = result.getItemMeta();
+                meta.setDisplayName(BukkitUtility.color("&c&lLife"));
+                meta.setLore(List.of(BukkitUtility.color("&7Eat to gain a life!")));
+                meta.addEnchant(Enchantment.LURE, 1, true);
+                meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+                result.setItemMeta(meta);
+                recipe = RefShapedRecipe.newShapedRecipe(result, getRoot().plugin, RECIPE_NAME)
+                        .shape(
+                                "RDR",
+                                "DSD",
+                                "RDR")
+                        .setIngredient('S', XMaterial.NETHER_STAR.get())
+                        .setIngredient('D', XMaterial.DIAMOND.get())
+                        .setIngredient('R', XMaterial.REDSTONE.get());
+            }
         }
     }
 }
